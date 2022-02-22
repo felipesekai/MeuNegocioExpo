@@ -1,20 +1,18 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { Text, View,LogBox ,StatusBar } from 'react-native';
+import 'react-native-gesture-handler';
+import { NavigationContainer } from '@react-navigation/native';
+import Routes from './src/route';
+LogBox.ignoreLogs([
+  "[react-native-gesture-handler] Seems like you\'re using an old API with gesture components, check out new Gestures system!",
+]);
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+ return (
+   <NavigationContainer>
+     <Routes/>
+
+     <StatusBar backgroundColor="#F4A460" />
+   </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
