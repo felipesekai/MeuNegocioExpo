@@ -1,56 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View } from 'react-native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import Home from '../pages/Home';
-import Client from '../pages/Client/ClientList';
-import Product from '../pages/Product';
-import CustomDrawer from '../components/CustomDrawer';
+import AuthRoutes from './auth.routes';
+import AppRoutes from './app.routes';
+import { AuthContext } from '../contexts/auth';
+// import { Container } from './styles';
 
-const Drawer = createDrawerNavigator();
+const route = () => {
+  const { user } = useContext(AuthContext);
 
-export default function route() {
-
-
-  return (
-    <Drawer.Navigator
-      drawerContent = {(props)=> <CustomDrawer {...props} />}
-      
-      screenOptions={
-        {
-          headerShown: false,
-          drawerActiveBackgroundColor: '#FFD700',
-          drawerActiveTintColor: '#000',
-          drawerInactiveBackgroundColor: '#F0E68C',
-          headerBackground : '#ddd',
-          drawerStyle: {
-            backgroundColor: '#F5F5DC'
-          }
-
-        }
-      }
-    >
-
-
-      <Drawer.Screen
-        name="Home"
-        component={Home}
-      />
-      <Drawer.Screen
-        name="Client"
-        component={Client}
-        options={{
-          title: 'Clientes',
-         
-        }}
-      />  
-      <Drawer.Screen
-        name="Product"
-        component={Product}
-        options={{
-          title: 'Produtos',
-         
-        }}
-      />
-    </Drawer.Navigator>);
+  return user ? <AppRoutes /> : <AuthRoutes />;
 }
 
+export default route;

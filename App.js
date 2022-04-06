@@ -1,17 +1,29 @@
-import React from 'react';
-import { Text, View,LogBox ,StatusBar } from 'react-native';
+import React, {useState}from 'react';
+import { Text, View,LogBox ,StatusBar, useColorScheme } from 'react-native';
 import 'react-native-gesture-handler';
 import { NavigationContainer } from '@react-navigation/native';
 import Routes from './src/route';
+import themes from './src/utils/themes';
+import {ThemeProvider} from 'styled-components';
+import AuthProvider from './src/contexts/auth';
+import { app } from "./src/services/firebaseConnect";
+
 LogBox.ignoreLogs([
   "[react-native-gesture-handler] Seems like you\'re using an old API with gesture components, check out new Gestures system!",
 ]);
 
+LogBox.ignoreAllLogs();
+
 export default function App() {
+  const deviceTheme = useColorScheme();
+  const theme = themes[deviceTheme] || themes.light;
  return (
    <NavigationContainer>
+     <AuthProvider>
+     <ThemeProvider theme={theme}>
      <Routes/>
-
+     </ThemeProvider>
+     </AuthProvider>
      <StatusBar backgroundColor="#F4A460" />
    </NavigationContainer>
   );

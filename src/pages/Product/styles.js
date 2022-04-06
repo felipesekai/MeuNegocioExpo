@@ -4,8 +4,7 @@ export const Container = styled.View``;
 
 export const HeaderList = styled.SafeAreaView`
     flex-direction: row;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 0 10px 0 10px;
     width: 100%;
     justify-content: space-between;
     border-radius: 5px;

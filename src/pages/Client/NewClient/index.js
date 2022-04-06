@@ -1,35 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { Text, View, TouchableOpacity, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
-import { ModalContainer, Input, ViewInput, TextOverInputs, HeaderModal, ModalBackgroud, } from '../../components/Style';
-import { styles } from '../../components/Style';
+import React, { useState, useEffect, useContext } from 'react';
+import { TouchableOpacity, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { ModalContainer, Input, ViewInput, TextOverInputs, HeaderModal, ModalBackgroud, } from '../../../utils/Style';
+import { styles } from '../../../utils/Style';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { TextInputMask } from 'react-native-masked-text';
+import { insertClient, insertUser } from '../../../database';
+import { AuthContext } from '../../../contexts/auth';
 
-export default function NewClient({ modalClose, setUser }) {
+export default function NewClient({ modalClose, setClient, client }) {
 
+  const {user} = useContext(AuthContext);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
 
-  // const formatText = (text) => {
+  useEffect(() => {
+    if(client){
+      setName(client.nome);
+      setPhone(client.telefone);
+    }
+  },[]);
 
-
-  //     let format = text.match(/(\d{2})\D*(\d{5}|\d{4})\D*(\d{4})$/);
-  //     console.log(format);
-
-  //     if(format) {
-  //     var final = `(${format[1]}) ${format[2]}-${format[3]}`;
-  //     console.log(final);
-  //     setPhone(final);
-  //     return final;
-  //   }
-  //   setPhone(text);
-
-
-  // };
+  // insertClient()
 
   function addUser() {
+    // if(client){
+    //   setClient(name, phone);
+
+    //   modalClose(false);
+
+    //   return
+    // }
     if (name !== '' && phone !== '') {
-      setUser(name, phone);
+      setClient(name, phone);
       modalClose(false);
     }
   }

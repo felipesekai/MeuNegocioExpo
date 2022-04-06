@@ -1,26 +1,17 @@
-import { ModalContainer, Input, ViewInput, TextOverInputs, HeaderModal, ModalBackgroud, styles } from '../../components/Style';
+import {
+    ModalContainer,
+    Input, ViewInput, TextOverInputs, HeaderModal, ModalBackgroud, styles
+} from '../../utils/Style';
 import React, { useState, useEffect, } from 'react';
 import { View, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { TextInputMask } from 'react-native-masked-text';
-const Product = ({onClose}) => {
+const Product = ({ onClose }) => {
 
     const [name, setName] = useState('');
     const [quantity, setQuantity] = useState('');
     const [price, setPrice] = useState('');
 
-    useEffect(() => {
-        convertPrice(price);
-
-    }, [price])
-
-    function convertPrice(price) {
-        if (price === '') {
-            // setPrice(price)
-            return
-        }
-        console.log(parseFloat(price).toFixed(2));
-    }
     return (
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
             <ModalBackgroud
@@ -68,6 +59,7 @@ const Product = ({onClose}) => {
                         <TextOverInputs>Preço</TextOverInputs>
                         <TextInputMask
                             style={styles.TInputMasked}
+                            placeholderTextColor={'#000'}
                             type={'money'}
                             options={{
                                 precision: 2,

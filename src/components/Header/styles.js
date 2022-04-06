@@ -6,7 +6,7 @@ export const Container = styled.View`
     width: 100%;
     flex-direction: row;
     padding: 10px;
-    
+    background-color: #F4A460;
     /* height: 7%; */
     /* elevation: 3;
     shadow-color: #000000;
