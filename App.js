@@ -19,11 +19,12 @@ export default function App() {
   const theme = themes[deviceTheme] || themes.light;
  return (
    <NavigationContainer>
+      <ThemeProvider theme={theme}>
      <AuthProvider>
-     <ThemeProvider theme={theme}>
+    
      <Routes/>
-     </ThemeProvider>
      </AuthProvider>
+     </ThemeProvider>
      <StatusBar backgroundColor="#F4A460" />
    </NavigationContainer>
   );

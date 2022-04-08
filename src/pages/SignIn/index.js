@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { Background, Input, TextOverInputs, ViewInput, } from '../../utils/Style';
+import { Background, Input, TitleInputs, ViewInput, } from '../../utils/Style';
 import { Container, Link, LinkText } from './styles';
 import MyButton from '../../components/MyButton';
 import { AuthContext } from '../../contexts/auth';
@@ -12,12 +12,12 @@ const SignIn = ({navigation}) => {
         <Background>
             <Container>
                 <ViewInput>
-                    <TextOverInputs>Email:</TextOverInputs>
+                    <TitleInputs>Email:</TitleInputs>
                     <Input
                         value={email}
                         onChangeText={(text) => setEmail(text)}
                         keyboardType="email-address"
-                    /><TextOverInputs>Senha:</TextOverInputs>
+                    /><TitleInputs>Senha:</TitleInputs>
                     <Input
                         value={password}
                         onChangeText={(text) => setPassword(text)}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, {useContext, useRef } from 'react';
 import { View } from 'react-native';
 import { Background } from '../../utils/Style';
 import { AuthContext } from '../../contexts/auth';
@@ -7,7 +7,8 @@ import { Form } from '@unform/mobile';
 import Input from './Input';
 import MyButton from '../../components/MyButton';
 import * as Yup from 'yup';
-import { min } from 'react-native-reanimated';
+
+
 const SignUp = () => {
     const { signUp } = useContext(AuthContext);
 
@@ -27,9 +28,7 @@ const SignUp = () => {
                 abortEarly: false,
             });
 
-            console.log(data.email);
-
-            signUp(data.name,data.email, data.password)
+            signUp(data.name,data.email, data.password);
 
         } catch (error) {
 

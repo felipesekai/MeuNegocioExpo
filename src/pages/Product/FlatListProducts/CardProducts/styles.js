@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native';
 export const Card = styled.TouchableOpacity`
     flex-direction: row;
     padding: 10px;    
-    box-shadow: 0px 3px 1px ${Platform.OS === 'ios' ? 'rgba(0,0,0,0.28)': '#000' };
+    box-shadow: 1px 3px 3px ${Platform.OS === 'ios' ? 'rgba(0,0,0,0.28)': '#000' };
     elevation: 3;
     width: 100%;
     background-color: ${props=> props.theme.cardColor};
@@ -25,8 +25,8 @@ export const Header = styled(Card)`
 `;
 export const Textp = styled.Text`
     font-size: 18px;
-    font-weight: bold;
-    color: #000;
+    text-transform: capitalize;
+    color: ${props=> props.theme.textColor};
 `;
 
 const styles = StyleSheet.create({

@@ -2,11 +2,11 @@ import React, { createContext, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { getUserFromStorage, insertUser, saveUserFromStorage, signInEmail, signUpEmail } from '../database';
 import { getDatabase, onValue, ref } from 'firebase/database';
-
+import { useTheme } from 'styled-components';
 // import { Container } from './styles';
 export const AuthContext = createContext({})
 const contexts = ({ children }) => {
-
+    const theme = useTheme();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -94,7 +94,7 @@ const contexts = ({ children }) => {
         })
     }
 
-    return <AuthContext.Provider value={{ user, loading, signIn, signUp }}>
+    return <AuthContext.Provider value={{ theme, user, loading, signIn, signUp, setLoading }}>
         {children}
     </AuthContext.Provider>;
 }

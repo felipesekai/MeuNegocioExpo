@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { View } from 'react-native';
 
 import { Card, Container,Textp, Header } from './styles';
 
 const CardProducts = ({itens}) => {
+  
   return (
+    
       <Container>        
           <Card>
             <View style={{flex: 1}}>
@@ -14,7 +16,7 @@ const CardProducts = ({itens}) => {
             <Textp>{itens && itens.quantity}</Textp>
             </View>
             <View style={{flex: 1, ustifyContent: 'center', alignItems: 'flex-end'}}>
-            <Textp>{itens && itens.price.toFixed(2)+" R$"}</Textp>
+            <Textp>{itens && parseFloat(itens.price).toFixed(2)+" R$"}</Textp>
             </View>
           </Card>
       </Container>

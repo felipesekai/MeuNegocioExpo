@@ -1,13 +1,13 @@
-import React, { useRef, useEffect, useCallback } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
+import { Text, } from 'react-native';
 import { useField } from '@unform/core';
-import { ViewInput, Input as TInput, TitleInputs } from '../../../utils/Style';
+import { ViewInput, Input, TitleInputs } from '../../../utils/Style';
 
-
-const Input = ({ name, label, onChangeText, ...rest }) => {
+const InputText = ({ name, label, onChangeText, ...rest }) => {
     const inputRef = useRef(null);
 
     const { fieldName, registerField, defaultValue, error } = useField(name);
+    const [colorError, setColorError] = useState(null);
 
     useEffect(() => {
         inputRef.current.value = defaultValue;
@@ -15,6 +15,14 @@ const Input = ({ name, label, onChangeText, ...rest }) => {
     useEffect(() => {
         if (inputRef.current) inputRef.current.value = defaultValue;
     }, [defaultValue]);
+
+    useEffect(() => {
+        if(error){
+            setColorError('red')
+        }else {    
+            setColorError(null)
+        }
+    },[error])
 
     useEffect(() => {
         registerField({
@@ -48,11 +56,13 @@ const handleChangeText = useCallback(
     }, [onChangeText]
 );
 
+
     return (
             
             <ViewInput style={{width: '100%'}}>
             {label&& <TitleInputs>{label}</TitleInputs>}
-            <TInput 
+            <Input 
+            erro={colorError}
             ref={inputRef}
             onChangeText={handleChangeText}
             defaultValue={defaultValue}
@@ -63,4 +73,4 @@ const handleChangeText = useCallback(
     );
 }
 
-export default Input;
+export default InputText;

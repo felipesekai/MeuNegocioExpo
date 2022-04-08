@@ -2,15 +2,11 @@ import styled from 'styled-components/native';
 
 export const Container = styled.View`
 flex: 1;
-/* padding: 10px 20px 10px 20px; */
 justify-content: center;
 width: 100%;
 height: 100%;
 border-top-left-radius: 5px;
 border-top-right-radius: 5px;
-
-
-
 `;
 export const Card = styled.TouchableOpacity`
 padding: 10px;

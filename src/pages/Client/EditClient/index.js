@@ -6,18 +6,30 @@ import Icon from '@expo/vector-icons/MaterialIcons';
 import { TextInputMask } from 'react-native-masked-text';
 import { AuthContext } from '../../../contexts/auth';
 
-export default function NewClient({ modalClose, setClient }) {
+export default function EditClient({ modalClose, client, updateClient }) {
 
-  // const { user } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
 
+  useEffect(() => {
+    if (client) {
+      setName(client.name);
+      setPhone(client.phone);
+    }
+  }, []);
+
 
   function addUser() {
-
-    if (name !== '' && phone !== '') {
-      setClient(name, phone);
+    if (client) {
+      updateClient(client.key, name, phone)
+      console.log("edit");
+    
       modalClose(false);
+      return
+    }
+    if (name !== '' && phone !== '') {
+     alert("Não é possivel")
     }
   }
 

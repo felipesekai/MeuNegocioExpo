@@ -5,7 +5,7 @@ export const FAB = styled.TouchableOpacity`
         justify-content: center;
         padding: 10px;
         border-radius: 25px;
-        box-shadow: 1px 5px 1px ${Platform.OS === 'ios' ? 'rgba(0,0,0,0.28)': '#000'};
+        box-shadow: 1px 3px 2px ${Platform.OS === 'ios' ? 'rgba(0,0,0,0.28)': '#000'};
         elevation: 3;
         background-color: ${props=>props.theme.primaryColor};
         position: absolute;

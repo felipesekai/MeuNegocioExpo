@@ -15,19 +15,19 @@ export const styles = StyleSheet.create({
         borderWidth: 2,
         borderRadius: 7,
         marginBottom: 5,
+        borderColor:'#f4a460'
     },
 });
 
 export const ModalBackgroud = styled.KeyboardAvoidingView`
 width: 100%;
-/* padding-bottom: 50px; */
 position: absolute;
 bottom: 0;
 background-color: #fff;
 border-top-left-radius: 10px;
 border-top-right-radius: 10px;
-elevation: 3;
-box-shadow: 3px 0 3px rgba(0, 0, 0, 0.28);
+elevation: 5;
+box-shadow: 3px 0 3px ${Platform.OS ==='ios' ? 'rgba(0, 0, 0, 0.28)' : "#000"} ;
 `;
 export const ModalContainer = styled.KeyboardAvoidingView`
 padding: 10px;
@@ -38,29 +38,24 @@ align-items: center;
 margin-bottom:50px;
 `;
 
-export const Input = styled.TextInput.attrs(()=>({
-    placeholderTextColor : '#000000',
-    }))`
+export const Input = styled.TextInput`
 padding: 10px;
 width: 100%;
 height:50px;
 border-width: 2px;
 border-radius: 7px;
-margin-bottom: 5px;
-border-color: ${props=>props.theme.primaryColor};
+border-color: ${props=> props.erro ?  'red' :  props.theme.primaryColor};
 `;
 
 export const ViewInput = styled.View`
-/* margin-top: 10px; */
-/* margin-bottom:10px; */
 justify-content: flex-start;
 width: 90%;
+margin-bottom: 5px;
 `;
 
-export const TextOverInputs = styled.Text`
+export const TitleInputs = styled.Text`
 font-size: 18px;
-/* font-weight: bold; */
-color: #000;
+color:${props=>props.theme.textColor};
 `;
 
 export const HeaderModal = styled.View`
