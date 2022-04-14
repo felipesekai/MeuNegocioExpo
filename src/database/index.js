@@ -112,5 +112,11 @@ export function deleteProduct(userId, product) {
     return remove(productRef);
 
 }
+export function getAllProduct(userId) {
+    const db = getDatabase();
+    const productRef = ref(db, `users/${userId}/products`);
+    return get(productRef);
+
+}
 
 

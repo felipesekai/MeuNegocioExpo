@@ -33,9 +33,8 @@ const NewProduct = ({ onClose, setNewProduct }) => {
                 price: data.price
             }
 
-            // console.log(newData);
             setNewProduct(data);
-            onClose(false);
+            
         } catch (error) {
             const valitadeErros = {}
 

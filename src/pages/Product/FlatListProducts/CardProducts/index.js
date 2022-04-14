@@ -3,12 +3,12 @@ import { View } from 'react-native';
 
 import { Card, Container,Textp, Header } from './styles';
 
-const CardProducts = ({itens}) => {
+const CardProducts = ({itens, editItem}) => {
   
   return (
     
       <Container>        
-          <Card>
+          <Card onPress={()=>editItem(itens)}>
             <View style={{flex: 1}}>
             <Textp>{itens && itens.name}</Textp>
             </View>

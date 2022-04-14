@@ -23,7 +23,7 @@ const theme = useTheme();
                 name='Last Orders'
                 component={LastOrders}
                 options={{
-                    tabBarIcon: ({ size, color }) => <LayoutIconTopTab  nameIcon={"hail"} colors={color} />,
+                    tabBarIcon: ({ size, color }) => <LayoutIconTopTab  nameIcon={"receipt-long"} colors={color} />,
                     title:"Ultimos Pedidos"
                 }}
             />
@@ -31,7 +31,7 @@ const theme = useTheme();
                 name='Task List'
                 component={TaskList}
                 options={{
-                    tabBarIcon: ({ size, color }) => <LayoutIconTopTab nameIcon={"home"} colors={color} />,
+                    tabBarIcon: ({ size, color }) => <LayoutIconTopTab nameIcon={"list-alt"} colors={color} />,
                     title:"Lista de Tarefas",
                 }}
             />
@@ -40,7 +40,7 @@ const theme = useTheme();
                 name='Last Payments'
                 component={LastOrders}
                 options={{
-                    tabBarIcon: ({ size, color }) => <LayoutIconTopTab nameIcon={"home"} colors={color} />,
+                    tabBarIcon: ({ size, color }) => <LayoutIconTopTab nameIcon={"payments"} colors={color} />,
                     title: "Pedidos Pagos"
                 }}
                 

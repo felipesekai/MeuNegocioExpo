@@ -29,16 +29,24 @@ export default function Client() {
   }
 
 
-  function addClient(name, phone) {
+  function addClient(client) {
     if (user) {
-      insertClient(user.id, name, phone).then(() => { alert("success") }).catch(err => console.log(err))
+      setLoading(true);
+      insertClient(user.id, client.name, client.phone)
+      .then(() => { 
+        alert("success");
+        setModalVisibility(false); })
+      .catch(err => console.log(err))
+      .finally(()=>{setLoading(false);})
     }
   }
 
-  function editClient(clientId, name, phone) {
+  function editClient(client) {
     if (user) {
-      updateClient(user.id, clientId, name, phone).then(() => { alert("success") })
-      .catch(err => console.log(err)).finally(() => {setUserEdit(null)});
+      setLoading(true);
+      updateClient(user.id, client.key, client.name, client.phone).then(() => { alert("success") })
+      .catch(err => console.log(err)).finally(() => {setUserEdit(null)})
+      .finally(()=>{setLoading(false);})
     }
   }
 
@@ -59,15 +67,15 @@ export default function Client() {
           transparent={true}
           animationType="slide" visible={modalVisibility} onRequestClose={() => setModalVisibility(false)}>
           <NewClient modalClose={setModalVisibility} 
-          setClient={(name, phone) => addClient(name, phone)}/>
+          setClient={addClient}/>
         </Modal>
       }
         {modalEditVisibility &&
         <Modal
           transparent={true}
           animationType="slide" visible={modalEditVisibility} onRequestClose={() => setModalEditVisibility(false)}>
-          <EditClient modalClose={setModalEditVisibility} 
-          client={userEdit} updateClient={(id,name,phone)=>editClient(id,name,phone)}/>
+          <EditClient modalClose={setModalEditVisibility}
+          initialValue={userEdit} updateClient={(client)=>editClient(client)}/>
         </Modal>
       }
       {/*botao add novo cliente*/}

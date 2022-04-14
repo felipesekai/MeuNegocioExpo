@@ -5,7 +5,7 @@ import { ViewInput, Input, TitleInputs, styles } from '../../../utils/Style';
 import { TextInputMask } from 'react-native-masked-text';
 
 
-const InputPrice = ({ name, label, onChangeText, ...rest }) => {
+const InputPhone = ({ name, label, onChangeText, ...rest }) => {
     const inputRef = useRef(null);
 
     const { fieldName, registerField, defaultValue, error } = useField(name);
@@ -62,7 +62,7 @@ const InputPrice = ({ name, label, onChangeText, ...rest }) => {
     return (
 
         <ViewInput style={{ width: '100%' }}>
-            {label && <TitleInputs>{label}</TitleInputs>}
+            {label && <TitleInputs>{label}</TitleInputs>}            
             <TextInputMask
                 style={{
                     padding: 10,
@@ -72,17 +72,15 @@ const InputPrice = ({ name, label, onChangeText, ...rest }) => {
                     borderRadius: 7,                    
                     borderColor: colorError? colorError: '#f4a460'
                 }}
-                type={'money'}
+                placeholder="(99) 9999-9999"
+                type={'cel-phone'}
+                keyboardType='phone-pad'
                 options={{
-                    precision: 2,
-                    separator: ',',
-                    delimiter: '.',
-                    unit: 'R$',
-                    suffixUnit: ''
-                }}
-                placeholder="0,00"
-                defaultValue={defaultValue}
-                keyboardType="numeric"
+                  maskType: 'BRL',
+                  dddMask: '(99)',
+                  withDDD: true,
+                }}         
+                value={defaultValue}
                 onChangeText={handleChangeText}
                 ref={inputRef}
                 {...rest}                
@@ -93,4 +91,4 @@ const InputPrice = ({ name, label, onChangeText, ...rest }) => {
     );
 }
 
-export default InputPrice;
+export default InputPhone;

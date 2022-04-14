@@ -31,7 +31,6 @@ const contexts = ({ children }) => {
                 setUserinStorage(data);
                 alert("cadastro realizado!");
             }).catch((error) => {
-
             })
 
         }).catch((error) => {
@@ -63,6 +62,8 @@ const contexts = ({ children }) => {
             .catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
+            alert(error.message)
+
             }).finally(() => {
                 setLoading(false);
 
@@ -75,6 +76,7 @@ const contexts = ({ children }) => {
         await saveUserFromStorage(data).then((user) => {
 
         }).catch((error) => {
+            alert(error.message)
 
         })
     }

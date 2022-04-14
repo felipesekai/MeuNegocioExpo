@@ -3,7 +3,7 @@ import { View, FlatList } from 'react-native';
 import { getDatabase, onValue, ref } from 'firebase/database';
 import CardProducts from './CardProducts';
 
-const FlatListProducts = ({userId}) => {
+const FlatListProducts = ({userId, openEdit, itemEdit}) => {
 
   const [productlist, setProductList] = useState([]);
 
@@ -32,11 +32,15 @@ const FlatListProducts = ({userId}) => {
   
 },[]);
 
+  function handlerEdit(item){
+    openEdit(true);
+    itemEdit(item);
+  }   
   return <FlatList
         showsVerticalScrollIndicator={false}
         data={productlist}
         keyExtractor={item =>item.key.toString()}
-        renderItem={({item}) =>  (<CardProducts itens={item} />)}
+        renderItem={({item}) =>  (<CardProducts editItem={handlerEdit} itens={item} />)}
         />
 }
 

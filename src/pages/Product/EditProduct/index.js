@@ -2,33 +2,32 @@ import {
     ModalContainer,
     HeaderModal, ModalBackgroud,
 } from '../../../utils/Style';
-import React, { useState, useRef, } from 'react';
+import React, { useState, useRef } from 'react';
 import { TouchableOpacity, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { Form } from '@unform/mobile';
 import * as Yup from 'yup';
 import InputText from '../../../components/Form/InputText';
 
-const EditProduct = ({ onClose }) => {
+const EditProduct = ({ onClose, initialValue, submitEdit }) => {
 
     const formRef = useRef(null);
 
     async function handleSubmit(data) {
-        const stringN = "Nome do produto é obrigatório!"
-        const stringQ = 'Quantidade do produto é obrigatório!'
-        const stringP = 'Preço do produto é obrigatório!'
+        const msgErrorName = "Nome do produto é obrigatório!"
+        const msgErrorQuanti = 'Quantidade do produto é obrigatório!'
+        const msgErrorPrice = 'Preço do produto é obrigatório!'
 
         try {
             const scheme = Yup.object().shape({
-                name: Yup.string(stringN).required(stringN),
-                quantity: Yup.number(stringQ).required(stringQ),
-                price: Yup.string(stringP).required(stringP),
+                name: Yup.string(msgErrorName).required(msgErrorName),
+                quantity: Yup.number(msgErrorQuanti).required(msgErrorQuanti),
+                price: Yup.string(msgErrorPrice).required(msgErrorPrice),
             })
 
             await scheme.validate(data, { abortEarly: false });
-
-            console.log(data);
-            onClose(false);
+            let newData = {...{key: initialValue.key}, ...data}
+            submitEdit(newData);
         } catch (error) {
             const valitadeErros = {}
 
@@ -68,7 +67,7 @@ const EditProduct = ({ onClose }) => {
 
                     </HeaderModal>
 
-                    <Form onSubmit={handleSubmit} style={{ width: '90%' }} ref={formRef}>
+                    <Form onSubmit={handleSubmit} initialData={initialValue} style={{ width: '90%' }} ref={formRef}>
                         <InputText name="name" label="Nome" />
                         <InputText name="quantity" label="Quantidade" keyboardType="numeric" type="number" />
                         <InputText name="price" label="Preço"  keyboardType="numeric" type="number"/>
