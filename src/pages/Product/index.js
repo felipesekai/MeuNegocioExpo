@@ -59,9 +59,10 @@ const Product = () => {
                 <TextHL>Quantidade</TextHL>
                 <TextHL>Preço</TextHL>
             </HeaderList>
+            <Container>
             {loading ? <ActivityIndicator size={30} color={theme.primaryColor} /> 
             : <FlatListProducts userId={user.id} openEdit={setModalEditVisibility} itemEdit={setProductEdit} />}
-            
+            </Container>
 
             <FloatingButton onClick={() => setModalNewVisibility(true)} icon={Icons("addchart", 30, 'white')} />
 

@@ -8,7 +8,6 @@ const MyButton = ({title, onClick}) => {
     const {loading} = useContext(AuthContext);
     const theme = useTheme();
     return (
-
         <TouchableOpacity onPress={onClick}>
             <Container>{loading? <ActivityIndicator color={theme.backgroundColor} size={20} />:
                 <Title>{title}</Title>

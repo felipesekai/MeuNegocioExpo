@@ -1,5 +1,6 @@
 import styled from 'styled-components/native';
 import { StyleSheet } from 'react-native';
+
 export const Background = styled.SafeAreaView`
     flex: 1;
     background-color: ${props=> props.theme.backgroundColor};
