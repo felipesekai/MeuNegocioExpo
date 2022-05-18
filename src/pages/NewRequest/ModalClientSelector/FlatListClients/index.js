@@ -18,7 +18,7 @@ const FlatListClients = ({ handlerSelect }) => {
                 setListClients([]);
 
                 snapshot.forEach(item => {
-                    let data = { key: item.key, name: item.val().name, phone: item.val().phone };
+                    let data = { id: item.key, name: item.val().name, phone: item.val().phone };
                     setListClients(oldArray => [...oldArray, data]);
                 });
                
@@ -34,7 +34,7 @@ const FlatListClients = ({ handlerSelect }) => {
         <FlatList
             showsVerticalScrollIndicator={false}
             data={listClients}
-            keyExtractor={item => item.key}
+            keyExtractor={item => item.id}
             renderItem={({ item }) => (
                 <Card onPress={() => handlerSelect(item)}>
                     <ItemListText>{item.name}</ItemListText>

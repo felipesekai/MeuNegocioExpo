@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { Modal, TouchableOpacity } from 'react-native';
+import { Modal, TouchableOpacity, Alert } from 'react-native';
 import { Icons } from '../../components/FloatingButton';
 import { Background } from '../../utils/Style';
 import { ButtonView, Container, ContainerClient, Header, HeaderBackground, Title } from './styles';
@@ -12,6 +12,7 @@ import ModalClientSelector from './ModalClientSelector';
 import MyButton from '../../components/MyButton';
 import * as Yup from 'yup';
 import { AuthContext } from '../../contexts/auth';
+import { insertNewOrder } from '../../database';
 
 const NewRequest = ({ onClose }) => {
     const formRef = useRef(null);
@@ -53,7 +54,8 @@ const NewRequest = ({ onClose }) => {
         const data = {
             client: clientSelected,
             date: dateformat,
-            products: products.filter((item) => item.quantity > 0)
+            products: products.filter((item) => item.quantity > 0),
+            total: total
         }
 
         try {
@@ -64,8 +66,30 @@ const NewRequest = ({ onClose }) => {
             });
 
             await scheme.validate(data, { abortEarly: false });
+            Alert.alert("Confirmar Pedido?",
+                data.products.map(item => '\n' + item.name) + '\n' + 'Total: ' + total,
+                [{
+                    text: 'cancelar',
+                    onPress: () => console.log('cancelado'),
+                    style: 'cancel'
+                },
+                {
+                    text: 'ok',
+                    onPress: () => {                        
+                        insertNewOrder(user.id, clientSelected.id, data)
+                        .then(() => {
+                            Alert.alert("Pedidio realizado!", '',
+                                [{
+                                    text: 'ok',
+                                    onPress: () => onClose(),
+                                    style: 'cancel'
+                                }])
+                        }).catch((err) => { alert(err.message) })
+                    }
 
-            alert(data.products.map(item => '\n' + item.name));
+                }]
+            );
+
 
         } catch (error) {
 

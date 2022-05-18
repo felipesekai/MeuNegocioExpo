@@ -118,5 +118,13 @@ export function getAllProduct(userId) {
     return get(productRef);
 
 }
+//pedidos
+export function insertNewOrder(userId,clientId, data){
+    const db = getDatabase();
+    const orderedRef = ref(db, `users/${userId}/ordered`);
+    const newOrder = push(orderedRef);
+    return set(newOrder, {clientId: clientId, products: data.products, date: data.date, total: data.total});
+
+}
 
 
