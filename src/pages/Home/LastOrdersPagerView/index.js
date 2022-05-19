@@ -5,6 +5,7 @@ import FloatingButton, { Icons } from '../../../components/FloatingButton';
 import { AuthContext } from '../../../contexts/auth';
 import { Background } from '../../../utils/Style';
 import NewRequest from '../../NewRequest';
+import Card from './Card';
 
 const LastOrders = () => {
   const [NewRequestStatus, setNewRequestStatus] = useState(false);
@@ -20,21 +21,17 @@ const LastOrders = () => {
         let data = {
           id: item.key,
           clientId: item.val().clientId,
+          clientName: item.val().clientName,
           date: item.val().date,
           total: item.val().total,
           products: item.val().products
         }
-        setListOrdered(oldArray => [...oldArray, data]);
+
+        setListOrdered(oldArray => [data, ...oldArray]);
       })
     });
 
-    // let client = null;
-    // const clientsRef = ref(db, `users/${user.id}/clients/${item.val().clientId}`);
-    // get(clientsRef).then((clients) =>    
-    // {
-    //  clients.filter((item) => item.key==)
 
-    // }        )
 
   }, [])
 
@@ -52,13 +49,9 @@ const LastOrders = () => {
           data={listOrdered}
           keyExtractor={item => item.id}
           renderItem={({ item }) => (
-            <View>
-              <Text>{"Cliente: " + item.clientId}</Text>
-              <Text>{"number: " + item.id}</Text>
-              <Text>{"data: " + item.date}</Text>
-            </View>)}
+            <Card data={item} />
+          )}
         />
-        <Text>Last Order</Text>
 
       </View>
       <FloatingButton icon={Icons('add', 30, 'white')} onClick={() => setNewRequestStatus(true)} />

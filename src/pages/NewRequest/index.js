@@ -76,7 +76,7 @@ const NewRequest = ({ onClose }) => {
                 {
                     text: 'ok',
                     onPress: () => {                        
-                        insertNewOrder(user.id, clientSelected.id, data)
+                        insertNewOrder(user.id, clientSelected, data)
                         .then(() => {
                             Alert.alert("Pedidio realizado!", '',
                                 [{
