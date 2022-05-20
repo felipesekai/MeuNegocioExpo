@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Alert } from 'react-native';
 import { getUserFromStorage, insertUser, saveUserFromStorage, signInEmail, signUpEmail } from '../database';
 import { getDatabase, onValue, ref } from 'firebase/database';
 import { useTheme } from 'styled-components';
@@ -29,8 +29,14 @@ const contexts = ({ children }) => {
             await insertUser(user.uid, name, email).then((user) => {
                 setUser(data);
                 setUserinStorage(data);
-                alert("cadastro realizado!");
+                Alert.alert("Cadastro realizado","",
+                [{
+                    text: 'OK',
+                    style:'default'
+                }])
+
             }).catch((error) => {
+                
             })
 
         }).catch((error) => {
@@ -38,8 +44,13 @@ const contexts = ({ children }) => {
             const errorMessage = error.message;
             console.log(errorCode)
             if (errorCode == "auth/email-already-in-use") {
-                alert("Email já existe!")
-
+                Alert.alert("Ops","não foi possivel cadastrar usuario tente novamente!" +
+                "\nEmail já existe!",
+                [{
+                    text: 'OK',
+                    style:'cancel'
+                }]
+                )               
                 return
             }
 

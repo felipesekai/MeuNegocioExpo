@@ -126,5 +126,18 @@ export function insertNewOrder(userId,client, data){
     return set(newOrder, {clientId: client.id, clientName: client.name, products: data.products, date: data.date, total: data.total});
 
 }
+export function updateOrder(userId, data){
+    const db = getDatabase();
+    const orderedRef = ref(db, `users/${userId}/ordered/${data.id}`);
+    return update(orderedRef, data);
+
+}
+//
+export function deleteOrder(userId,data){
+    const db = getDatabase();
+    const orderedRef = ref(db, `users/${userId}/ordered/${data.id}`);   
+    return remove(orderedRef);
+
+}
 
 
