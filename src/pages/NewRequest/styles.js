@@ -16,11 +16,12 @@ flex: 1;
 `;
 export const ButtonView = styled.View`
 align-items: center;
+
 `;
 export const ContainerClient = styled.View`
 flex-direction: row;
 justify-content:space-between;
-margin: 10px 10px;
+margin: 5px 10px;
 `;
 export const Title = styled.Text`
 color: ${props=>props.theme.backgroundColor};

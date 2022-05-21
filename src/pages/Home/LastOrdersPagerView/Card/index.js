@@ -6,10 +6,10 @@ import { Container, Client, Number, Date, ViewRow } from './styles';
 const Card = ({data}) => {
       return (
       <Container>
-          <Client>{data && "cliente: " + data.clientName}</Client>
+          <Client>{data && "Cliente: " + data.clientName}</Client>
           <ViewRow>
-              <Number>{data & 'number' + data.id}</Number>
-              <Date>{data && "data: " + data.date}</Date>
+              <Number>{data && 'Total: ' + data.total.toFixed(2)}</Number>
+              <Date>{data && "Data: " + data.date}</Date>
           </ViewRow>
 
       </Container>

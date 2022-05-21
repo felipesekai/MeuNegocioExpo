@@ -68,7 +68,7 @@ const handleChangeText = useCallback(
             defaultValue={defaultValue}
             {...rest}
             />
-            {error && <Text style={{color: 'red'}}>{error}</Text>}
+            {error && <Text style={{color: 'red', fontSize:12}}>{error}</Text>}
             </ViewInput>
     );
 }

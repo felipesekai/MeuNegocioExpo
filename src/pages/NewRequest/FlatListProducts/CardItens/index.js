@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { TextInput } from 'react-native';
-
+import NumericInput from 'react-native-numeric-input'
 import { Card, Container, InputQuantity, ItemName, ItemPrice } from './styles';
-
+import { useTheme } from 'styled-components';
 const CardItens = ({ item, sumTotal, totalItem }) => {
-    const [quantity, setQuantity] = useState('');
+    const [quantity, setQuantity] = useState(0);
+
+    const theme = useTheme();
 
     useEffect(() => {
-        if (item.quantity > quantity && quantity !=='') {
+        if (item.quantity > quantity && quantity !== 0) {
             item.quantity = quantity;
             sumTotal(totalItem - (item.quantity * item.price));
-        }else if(quantity ===''){
+        } else if (quantity === 0) {
             sumTotal(totalItem - (item.quantity * item.price));
-                item.quantity = 0;
+            item.quantity = 0;
         }
-        
         else {
             item.quantity = quantity;
             sumTotal(totalItem + (item.quantity * item.price));
         }
 
-        // console.log(item);
     }, [quantity])
     return (
 
@@ -30,13 +30,17 @@ const CardItens = ({ item, sumTotal, totalItem }) => {
                 <ItemPrice>{item && parseFloat(item.price).toFixed(2) + ' $'}</ItemPrice>
             </Card>
             <InputQuantity>
-                <TextInput
-                    style={{flex: 1}}
+                <NumericInput
+                    borderColor={theme.primaryColor}
+                    leftButtonBackgroundColor={theme.primaryColor}
+                    rightButtonBackgroundColor={theme.primaryColor}
+                    rounded={true}  
+                    totalWidth={102}
+                    containerStyle={{borderWidth:2}} 
+                    style={{ flex: 1,}}
                     value={quantity}
-                    placeholder='0'
-                    keyboardType='numeric'
-                    onChangeText={setQuantity}
-                />
+                    minValue={0}
+                    onChange={setQuantity} />
             </InputQuantity>
 
 

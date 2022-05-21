@@ -75,16 +75,16 @@ const NewRequest = ({ onClose }) => {
                 },
                 {
                     text: 'ok',
-                    onPress: () => {                        
+                    onPress: () => {
                         insertNewOrder(user.id, clientSelected, data)
-                        .then(() => {
-                            Alert.alert("Pedidio realizado!", '',
-                                [{
-                                    text: 'ok',
-                                    onPress: () => onClose(),
-                                    style: 'cancel'
-                                }])
-                        }).catch((err) => { alert(err.message) })
+                            .then(() => {
+                                Alert.alert("Pedidio realizado!", '',
+                                    [{
+                                        text: 'ok',
+                                        onPress: () => onClose(),
+                                        style: 'cancel'
+                                    }])
+                            }).catch((err) => { alert(err.message) })
                     }
 
                 }]
@@ -121,7 +121,7 @@ const NewRequest = ({ onClose }) => {
     }
 
     return (
-        <Modal animationType='fade' onRequestClose={onClose}>
+        <Modal animationType='slide' onRequestClose={onClose}>
             <Background>
                 <HeaderBackground>
                     <Header>
@@ -156,6 +156,7 @@ const NewRequest = ({ onClose }) => {
                             <MyButton title={'Confirmar'} onClick={() => formRef.current.submitForm()} />
                         </ButtonView>
                     </Form>
+
 
 
                 </Container>
