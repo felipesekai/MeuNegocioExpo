@@ -26,7 +26,7 @@ const EditProduct = ({ onClose, initialValue, submitEdit }) => {
             })
 
             await scheme.validate(data, { abortEarly: false });
-            let newData = {...{key: initialValue.key}, ...data}
+            let newData = {...{id: initialValue.id}, ...data}
             submitEdit(newData);
         } catch (error) {
             const valitadeErros = {}

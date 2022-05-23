@@ -5,10 +5,9 @@ import Header from '../../components/Header';
 import { Container} from './styles';
 import FloatingButton from '../../components/FloatingButton';
 import Icon from '@expo/vector-icons/MaterialIcons';
-
 import FlatListClients from './FlatListClients';
 import { AuthContext } from '../../contexts/auth';
-import { updateClient, insertClient } from '../../database';
+import { updateClient, insertClient, deleteClient } from '../../database';
 import { useTheme } from 'styled-components';
 import EditClient from './EditClient';
 import NewClient from './NewClient';
@@ -44,8 +43,23 @@ export default function Client() {
   function editClient(client) {
     if (user) {
       setLoading(true);
-      updateClient(user.id, client.key, client.name, client.phone).then(() => { alert("success") })
+      updateClient(user.id, client.id, client.name, client.phone).then(() => { 
+        alert("success") 
+        setModalEditVisibility(false);})
       .catch(err => console.log(err)).finally(() => {setUserEdit(null)})
+      .finally(()=>{setLoading(false);})
+    }
+  }
+
+  function removeClient(client) {
+    if (user) {
+      setLoading(true);
+      deleteClient(user.id, client.id)
+      .then(() => { 
+        alert("Cliente Excluido!!") 
+        // Alert.alert("Cliente Excluido")
+        setModalVisibility(false);})
+      .catch(err => console.log(err))
       .finally(()=>{setLoading(false);})
     }
   }
@@ -57,7 +71,7 @@ export default function Client() {
       <Container>
         {loading
           ? <ActivityIndicator color={theme.primaryColor} size={30} />
-          : <FlatListClients handlerEdit={editPerson} userId={user.id} />
+          : <FlatListClients handlerEdit={editPerson} userId={user.id} handleDelete={removeClient} />
         }
 
       </Container>

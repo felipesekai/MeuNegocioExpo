@@ -1,4 +1,4 @@
-import { getDatabase, ref, onValue, get } from 'firebase/database';
+import { getDatabase, ref, onValue, get, query, limitToLast } from 'firebase/database';
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, KeyboardAvoidingView, FlatList } from 'react-native';
 import FloatingButton, { Icons } from '../../../components/FloatingButton';
@@ -29,8 +29,8 @@ const LastOrders = () => {
 
         setListOrdered(oldArray => [data, ...oldArray]);
       })
-    });
-
+    }); 
+    
 
 
   }, [])

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, FlatList } from 'react-native';
+import { View, FlatList, Alert } from 'react-native';
 import { getDatabase, ref, onValue } from "firebase/database"
 import { Card, ItemListText } from '../styles';
 import { AuthContext } from '../../../contexts/auth';
+import { alertMenssage } from '../../../utils/Strings';
 
-const FlatListClients = ({ handlerEdit, userId }) => {
+const FlatListClients = ({ handlerEdit, userId, handleDelete }) => {
     const { setLoading } = useContext(AuthContext);
     const [listClients, setListClients] = useState([]);
 
@@ -18,7 +19,7 @@ const FlatListClients = ({ handlerEdit, userId }) => {
                 setListClients([]);
 
                 snapshot.forEach(item => {
-                    let data = { key: item.key, name: item.val().name, phone: item.val().phone };
+                    let data = { id: item.key, name: item.val().name, phone: item.val().phone };
                     setListClients(oldArray => [...oldArray, data]);
                 });
                
@@ -34,9 +35,24 @@ const FlatListClients = ({ handlerEdit, userId }) => {
         <FlatList
             showsVerticalScrollIndicator={false}
             data={listClients}
-            keyExtractor={item => item.key}
+            keyExtractor={item => item.id}
             renderItem={({ item }) => (
-                <Card onLongPress={() => handlerEdit(item)}>
+                <Card onPress={() => handlerEdit(item)} 
+                onLongPress={() =>{
+                    Alert.alert(alertMenssage.deleteClientTitle, alertMenssage.deleteClientDescription,
+                       [
+                        {
+                            text: "sim",
+                            onPress: () => handleDelete(item),                              
+                            
+                        },
+                           {
+                               text: "NÃO",                               
+                               style: "cancel",
+                           },
+                          
+                       ]);
+                }}>
                     <ItemListText>{item.name}</ItemListText>
                 </Card>)}
         />

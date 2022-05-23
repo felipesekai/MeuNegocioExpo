@@ -32,7 +32,7 @@ export function updateClient(userId, clientId, name, phone) {
     const clientsRef = ref(db, `users/${userId}/clients/${clientId}`);
     return update(clientsRef, { name: name, phone: phone });
 }
-export function deleteClient(userId, clientId, name, phone) {
+export function deleteClient(userId, clientId) {
     const db = getDatabase();
     const clientsRef = ref(db, `users/${userId}/clients/${clientId}`);
     return remove(clientsRef);
@@ -102,13 +102,13 @@ export function insertProduct(userId, product) {
 }
 export function updateProduct(userId, product) {
     const db = getDatabase();
-    const productRef = ref(db, `users/${userId}/products/${product.key}`);
+    const productRef = ref(db, `users/${userId}/products/${product.id}`);
     return update(productRef, product);
 
 }
 export function deleteProduct(userId, product) {
     const db = getDatabase();
-    const productRef = ref(db, `users/${userId}/products/${product.key}`);
+    const productRef = ref(db, `users/${userId}/products/${product.id}`);
     return remove(productRef);
 
 }
@@ -126,6 +126,7 @@ export function insertNewOrder(userId,client, data){
     return set(newOrder, {clientId: client.id, clientName: client.name, products: data.products, date: data.date, total: data.total});
 
 }
+
 export function updateOrder(userId, data){
     const db = getDatabase();
     const orderedRef = ref(db, `users/${userId}/ordered/${data.id}`);

@@ -13,7 +13,7 @@ const FlatListProducts = ({ setList, list, _total, _setTotal }) => {
         setLoading(true);
         getAllProduct(user.id).then((products) => {
             products.forEach((product) => {
-                let data = { key: product.key, name: product.val().name, price: product.val().price, quantity: 0 }
+                let data = { id: product.key, name: product.val().name, price: product.val().price, quantity: 0 }
                 setList(oldArray => [...oldArray, data]);                
             });
            
@@ -30,7 +30,7 @@ const FlatListProducts = ({ setList, list, _total, _setTotal }) => {
         <Container>
             <FlatList
                 data={list}
-                keyExtractor={(item) => item.key}
+                keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (<CardItens totalItem={_total} sumTotal={(item)=>_setTotal(item)} item={item} />)}
             />
 

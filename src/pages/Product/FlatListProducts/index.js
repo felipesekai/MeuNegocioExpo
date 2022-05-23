@@ -15,7 +15,7 @@ const FlatListProducts = ({userId, openEdit, itemEdit}) => {
             setProductList([]);
                 snapshot.forEach((product)=>{
                     const data = {
-                        key : product.key,
+                        id : product.key,
                         name : product.val().name,
                         quantity : product.val().quantity,
                         price : product.val().price
@@ -39,7 +39,7 @@ const FlatListProducts = ({userId, openEdit, itemEdit}) => {
   return <FlatList
         showsVerticalScrollIndicator={false}
         data={productlist}
-        keyExtractor={item =>item.key.toString()}
+        keyExtractor={item =>item.id}
         renderItem={({item}) =>  (<CardProducts editItem={handlerEdit} itens={item} />)}
         />
 }
