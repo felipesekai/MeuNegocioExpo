@@ -39,7 +39,7 @@ const FlatListClients = ({ handlerEdit, userId, handleDelete }) => {
             renderItem={({ item }) => (
                 <Card onPress={() => handlerEdit(item)} 
                 onLongPress={() =>{
-                    Alert.alert(alertMenssage.deleteClientTitle, alertMenssage.deleteClientDescription,
+                    Alert.alert(alertMenssage.deleteTitle, alertMenssage.deleteClientDescription,
                        [
                         {
                             text: "sim",

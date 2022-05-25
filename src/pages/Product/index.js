@@ -1,12 +1,12 @@
 import React, {useState, useContext, useEffect, useCallback} from 'react';
-import { ActivityIndicator, Modal } from 'react-native';
+import { ActivityIndicator, Modal, Alert } from 'react-native';
 import Header from '../../components/Header';
 import { Container, HeaderList, TextHL } from './styles';
 import { Background } from '../../utils/Style';
 import FloatingButton, { Icons } from '../../components/FloatingButton';
 import FlatListProducts from './FlatListProducts';
 import NewProduct from './NewProduct';
-import { insertProduct, updateProduct } from '../../database';
+import { insertProduct, updateProduct, deleteProduct } from '../../database';
 import { AuthContext } from '../../contexts/auth';
 import EditProduct from './EditProduct';
 
@@ -42,7 +42,22 @@ const Product = () => {
 
         })
         .catch((error)=>{
-            alert('erro ao Alterar Produto!')
+            Alert.alert('Ops...','erro ao Alterar Produto!')
+
+        })
+        .finally(()=>{
+            setLoading(false);
+        })
+    }   
+    function handlerDeleteProduct(product) {
+        setLoading(true);
+        
+        deleteProduct(user.id, product)
+        .then(()=> {
+            Alert.alert('Produto excluido!','');
+        })
+        .catch((error)=>{
+            Alert.alert('Ops...','erro ao deletar Produto!')
 
         })
         .finally(()=>{
@@ -61,7 +76,10 @@ const Product = () => {
             </HeaderList>
             <Container>
             {loading ? <ActivityIndicator size={30} color={theme.primaryColor} /> 
-            : <FlatListProducts userId={user.id} openEdit={setModalEditVisibility} itemEdit={setProductEdit} />}
+            : <FlatListProducts userId={user.id} 
+            openEdit={setModalEditVisibility} 
+            itemEdit={setProductEdit} 
+            handlerDelete={handlerDeleteProduct} />}
             </Container>
 
             <FloatingButton onClick={() => setModalNewVisibility(true)} icon={Icons("addchart", 30, 'white')} />

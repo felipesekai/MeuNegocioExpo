@@ -1,25 +1,39 @@
-import React, {useEffect} from 'react';
-import { View } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Alert } from 'react-native';
+import { alertMenssage } from '../../../../utils/Strings';
+import { Card, Container, Textp, Header } from './styles';
 
-import { Card, Container,Textp, Header } from './styles';
+const CardProducts = ({itens: item, editItem, itemDelete }) => {
 
-const CardProducts = ({itens, editItem}) => {
-  
   return (
-    
-      <Container>        
-          <Card onPress={()=>editItem(itens)}>
-            <View style={{flex: 1}}>
-            <Textp>{itens && itens.name}</Textp>
-            </View>
-            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <Textp>{itens && itens.quantity}</Textp>
-            </View>
-            <View style={{flex: 1, ustifyContent: 'center', alignItems: 'flex-end'}}>
-            <Textp>{itens && parseFloat(itens.price).toFixed(2)+" R$"}</Textp>
-            </View>
-          </Card>
-      </Container>
+
+    <Container>
+      <Card onPress={() => editItem(item)} onLongPress={() =>
+        Alert.alert(alertMenssage.deleteTitle, alertMenssage.deleteProdutoDescription,
+          [
+            {
+              text: "sim",
+              onPress: () => itemDelete(item),
+
+            },
+            {
+              text: "NÃO",
+              style: "cancel",
+            },
+
+          ])
+      }>
+        <View style={{ flex: 1 }}>
+          <Textp>{item && item.name}</Textp>
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Textp>{item && item.quantity}</Textp>
+        </View>
+        <View style={{ flex: 1, ustifyContent: 'center', alignItems: 'flex-end' }}>
+          <Textp>{item && parseFloat(item.price).toFixed(2) + " R$"}</Textp>
+        </View>
+      </Card>
+    </Container>
   );
 }
 

@@ -7,8 +7,9 @@ export const errorMenssage={
 }
 
 export const alertMenssage={
-    deleteClientTitle:"Deseja Excluir?",
+    deleteTitle:"Deseja Excluir?",
     deleteClientDescription:"Deseja realmente excluir o cliente?",
+    deleteProdutoDescription:"Deseja realmente excluir o Produto?",
 
 }
 

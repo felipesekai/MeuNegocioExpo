@@ -119,11 +119,18 @@ export function getAllProduct(userId) {
 
 }
 //pedidos
+
 export function insertNewOrder(userId,client, data){
     const db = getDatabase();
     const orderedRef = ref(db, `users/${userId}/ordered`);
     const newOrder = push(orderedRef);
     return set(newOrder, {clientId: client.id, clientName: client.name, products: data.products, date: data.date, total: data.total});
+
+}
+export function getAllOrder(userId){
+    const db = getDatabase();
+    const orderedRef = ref(db, `users/${userId}/ordered`);
+    return get(orderedRef);
 
 }
 
@@ -134,9 +141,9 @@ export function updateOrder(userId, data){
 
 }
 //
-export function deleteOrder(userId,data){
+export function deleteOrder(userId,itemId){
     const db = getDatabase();
-    const orderedRef = ref(db, `users/${userId}/ordered/${data.id}`);   
+    const orderedRef = ref(db, `users/${userId}/ordered/${itemId}`);   
     return remove(orderedRef);
 
 }
