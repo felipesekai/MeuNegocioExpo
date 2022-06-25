@@ -68,7 +68,7 @@ const NewRequest = ({ onClose }) => {
 
             await scheme.validate(data, { abortEarly: false });
             Alert.alert("Confirmar Pedido?",
-                data.products.map(item => '\n' + item.name) + '\n' + 'Total: ' + total,
+                data.products.map(item => '\n' + item.name + ' ' + item.quantity) + '\n' + 'Total: ' + total,
                 [{
                     text: 'cancelar',
                     onPress: () => console.log('cancelado'),

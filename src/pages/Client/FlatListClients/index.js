@@ -32,6 +32,7 @@ const FlatListClients = ({ handlerEdit, userId, handleDelete }) => {
     }, [])
 
     return (
+        <View>
         <FlatList
             showsVerticalScrollIndicator={false}
             data={listClients}
@@ -56,6 +57,7 @@ const FlatListClients = ({ handlerEdit, userId, handleDelete }) => {
                     <ItemListText>{item.name}</ItemListText>
                 </Card>)}
         />
+        </View>
     );
 }
 

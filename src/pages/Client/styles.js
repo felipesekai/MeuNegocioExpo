@@ -14,7 +14,7 @@ background-color: ${props=> props.theme.cardColor};
 box-shadow: 0px 3px 1px ${Platform.OS === 'ios' ? 'rgba(0,0,0,0.28)': '#000' };
 elevation: 3;
 margin: 3px 10px;
-border-radius: 5px;
+border-radius: 1px;
 `;
 
 export const ItemListText = styled.Text`

@@ -17,15 +17,14 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
-      
+      "supportsTablet": true
     },
     "android": {
-      
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.felipesekai.MeuNegocio"
     },
     "web": {
       "favicon": "./assets/favicon.png"
