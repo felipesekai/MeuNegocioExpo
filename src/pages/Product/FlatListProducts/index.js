@@ -8,10 +8,12 @@ const FlatListProducts = ({ userId, openEdit, itemEdit, handlerDelete }) => {
     const [productlist, setProductList] = useState([]);
 
     useEffect(() => {
+        let tempList = [];
         try {
             const db = getDatabase();
             const productsRef = ref(db, 'users/' + userId + '/products')
             onValue(productsRef, (snapshot) => {
+                tempList= [];
                 setProductList([]);
                 snapshot.forEach((product) => {
                     const data = {
@@ -21,7 +23,9 @@ const FlatListProducts = ({ userId, openEdit, itemEdit, handlerDelete }) => {
                         price: product.val().price
                     }
 
-                    setProductList(oldArray => [...oldArray, data]);
+                    tempList.push(data);
+
+                   
 
                 });
 
@@ -29,6 +33,11 @@ const FlatListProducts = ({ userId, openEdit, itemEdit, handlerDelete }) => {
         } catch (error) {
             console.log(error)
         }
+        tempList.sort((a, b) =>{
+            return a.name > b.name ? 1 : -1
+        });
+        setProductList(tempList);
+        
 
     }, []);
 

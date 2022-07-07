@@ -86,10 +86,10 @@ export function signOutUser() {
 // AsyncStorage
 
 export async function saveUserFromStorage(user) {
-    return await AsyncStorage.setItem("USER", JSON.stringify(user));
+    return await AsyncStorage.setItem("@MEUNEGOCIO:USER", JSON.stringify(user));
 }
 export async function getUserFromStorage() {
-    return await AsyncStorage.getItem("USER");
+    return await AsyncStorage.getItem("@MEUNEGOCIO:USER");
 }
 //
 //produtos
