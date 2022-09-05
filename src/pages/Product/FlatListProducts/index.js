@@ -13,7 +13,7 @@ const FlatListProducts = ({ userId, openEdit, itemEdit, handlerDelete }) => {
             const db = getDatabase();
             const productsRef = ref(db, 'users/' + userId + '/products')
             onValue(productsRef, (snapshot) => {
-                tempList= [];
+                tempList = [];
                 setProductList([]);
                 snapshot.forEach((product) => {
                     const data = {
@@ -25,7 +25,7 @@ const FlatListProducts = ({ userId, openEdit, itemEdit, handlerDelete }) => {
 
                     tempList.push(data);
 
-                   
+
 
                 });
 
@@ -33,11 +33,11 @@ const FlatListProducts = ({ userId, openEdit, itemEdit, handlerDelete }) => {
         } catch (error) {
             console.log(error)
         }
-        tempList.sort((a, b) =>{
+        tempList.sort((a, b) => {
             return a.name > b.name ? 1 : -1
         });
         setProductList(tempList);
-        
+
 
     }, []);
 
@@ -46,14 +46,14 @@ const FlatListProducts = ({ userId, openEdit, itemEdit, handlerDelete }) => {
         itemEdit(item);
     }
     return (
-    <View>
-        <FlatList
-            showsVerticalScrollIndicator={false}
-            data={productlist}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (<CardProducts editItem={handlerEdit} itens={item} itemDelete={handlerDelete} />)}
-        />
-    </View>
+        <View style={{ marginBottom: 20 }}>
+            <FlatList
+                showsVerticalScrollIndicator={false}
+                data={productlist}
+                keyExtractor={item => item.id}
+                renderItem={({ item }) => (<CardProducts editItem={handlerEdit} itens={item} itemDelete={handlerDelete} />)}
+            />
+        </View>
     );
 }
 
