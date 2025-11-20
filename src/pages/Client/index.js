@@ -7,7 +7,7 @@ import FloatingButton from '../../components/FloatingButton';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import FlatListClients from './FlatListClients';
 import { AuthContext } from '../../contexts/auth';
-import { updateClient, insertClient, deleteClient, getAllOrder, deleteOrder } from '../../database';
+import { createClient, updateClient, deleteClient } from '../../database/repository';
 import { useTheme } from 'styled-components';
 import EditClient from './EditClient';
 import NewClient from './NewClient';
@@ -17,7 +17,7 @@ export default function Client() {
   const [modalVisibility, setModalVisibility] = useState(false);
   const [modalEditVisibility, setModalEditVisibility] = useState(false);
   const [userEdit, setUserEdit] = useState(null);
-  const { user, loading, setLoading } = useContext(AuthContext);
+  const { loading, setLoading } = useContext(AuthContext);
 
 
 
@@ -28,52 +28,46 @@ export default function Client() {
   }
 
 
-  function addClient(client) {
-    if (user) {
-      setLoading(true);
-      insertClient(user.id, client.name, client.phone)
-        .then(() => {
-          alert("success");
-          setModalVisibility(false);
-        })
-        .catch(err => console.log(err))
-        .finally(() => { setLoading(false); })
+  async function addClient(client) {
+    setLoading(true);
+    try {
+      await createClient({ name: client.name, phone: client.phone });
+      alert("Success");
+      setModalVisibility(false);
+    } catch (err) {
+      console.log(err);
+      alert("Error saving client");
+    } finally {
+      setLoading(false);
     }
   }
 
-  function editClient(client) {
-    if (user) {
-      setLoading(true);
-      updateClient(user.id, client.id, client.name, client.phone).then(() => {
-        alert("success")
-        setModalEditVisibility(false);
-      })
-        .catch(err => console.log(err)).finally(() => { setUserEdit(null) })
-        .finally(() => { setLoading(false); })
+  async function editClient(client) {
+    setLoading(true);
+    try {
+      await updateClient({ clientId: client.id, name: client.name, phone: client.phone });
+      alert("Success");
+      setModalEditVisibility(false);
+    } catch (err) {
+      console.log(err);
+      alert("Error updating client");
+    } finally {
+      setUserEdit(null);
+      setLoading(false);
     }
   }
 
-  function removeClient(client) {
-    if (user) {
-      setLoading(true);
-      deleteClient(user.id, client.id)
-        .then(() => {
-
-          getAllOrder(user.id).then((listOrdered) => {
-            listOrdered.forEach((item) => {
-              if (item.val().clientId === client.id) {
-                deleteOrder(user.id, item.key).then(() => { }).catch(err => console.log(err))
-              }
-            })
-          })
-          alert("Cliente Excluido!!")
-          // Alert.alert("Cliente Excluido")
-        })
-        .catch(err => console.log(err))
-        .finally(() => {
-          setLoading(false);
-          setModalVisibility(false);
-        })
+  async function removeClient(client) {
+    setLoading(true);
+    try {
+      await deleteClient(client.id);
+      alert("Cliente Excluído!");
+    } catch (err) {
+      console.log(err);
+      alert("Error deleting client");
+    } finally {
+      setLoading(false);
+      setModalVisibility(false);
     }
   }
 
@@ -82,11 +76,7 @@ export default function Client() {
     <Background>
       <Header />
       <Container>
-        {loading
-          ? <ActivityIndicator color={theme.primaryColor} size={30} />
-          : <FlatListClients handlerEdit={editPerson} userId={user.id} handleDelete={removeClient} />
-        }
-
+        <FlatListClients handlerEdit={editPerson} handleDelete={removeClient} />
       </Container>
 
       {modalVisibility &&

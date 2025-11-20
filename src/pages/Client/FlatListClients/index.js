@@ -1,64 +1,42 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React from 'react';
 import { View, FlatList, Alert } from 'react-native';
-import { getDatabase, ref, onValue } from "firebase/database"
+import withObservables from '@nozbe/with-observables';
 import { Card, ItemListText } from '../styles';
-import { AuthContext } from '../../../contexts/auth';
 import { alertMenssage } from '../../../utils/Strings';
+import { observeClients } from '../../../database/repository';
+import Client from '../../../database/model/Client'; // Import model for type hinting
 
-const FlatListClients = ({ handlerEdit, userId, handleDelete }) => {
-    const { setLoading } = useContext(AuthContext);
-    const [listClients, setListClients] = useState([]);
-
-
-    useEffect(() => {
-        try {
-            setLoading(true);
-            const db = getDatabase();
-            const clientsRef = ref(db, `users/${userId}/clients/`);
-            onValue(clientsRef, (snapshot) => {
-                setListClients([]);
-
-                snapshot.forEach(item => {
-                    let data = { id: item.key, name: item.val().name, phone: item.val().phone };
-                    setListClients(oldArray => [...oldArray, data]);
-                });
-               
-            })
-        } catch (error) {
-
-        }
-        setLoading(false);
-
-    }, [])
-
+const FlatListClients = ({ clients, handlerEdit, handleDelete }) => {
     return (
         <View>
-        <FlatList
-            showsVerticalScrollIndicator={false}
-            data={listClients}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-                <Card onPress={() => handlerEdit(item)} 
-                onLongPress={() =>{
-                    Alert.alert(alertMenssage.deleteTitle, alertMenssage.deleteClientDescription,
-                       [
-                        {
-                            text: "sim",
-                            onPress: () => handleDelete(item),                              
-                            
-                        },
-                           {
-                               text: "NÃO",                               
-                               style: "cancel",
-                           },
-                          
-                       ]);
-                }}>
-                    <ItemListText>{item.name}</ItemListText>
-                </Card>)}
-        />
+            <FlatList
+                showsVerticalScrollIndicator={false}
+                data={clients}
+                keyExtractor={item => item.id}
+                renderItem={({ item }) => (
+                    <Card onPress={() => handlerEdit(item)}
+                        onLongPress={() => {
+                            Alert.alert(alertMenssage.deleteTitle, alertMenssage.deleteClientDescription,
+                                [
+                                    {
+                                        text: "sim",
+                                        onPress: () => handleDelete(item),
+                                    },
+                                    {
+                                        text: "NÃO",
+                                        style: "cancel",
+                                    },
+                                ]);
+                        }}>
+                        <ItemListText>{item.name}</ItemListText>
+                    </Card>)}
+            />
         </View>
     );
 }
 
-export default FlatListClients;
+const enhance = withObservables([], () => ({
+    clients: observeClients(),
+}));
+
+export default enhance(FlatListClients);

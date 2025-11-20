@@ -1,39 +1,14 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, FlatList } from 'react-native';
-import { getDatabase, ref, onValue } from "firebase/database"
+import React from 'react';
+import { FlatList } from 'react-native';
+import withObservables from '@nozbe/with-observables';
 import { Card, ItemListText } from './styles';
-import { AuthContext } from '../../../../contexts/auth';
+import { observeClients } from '../../../../database/repository';
 
-const FlatListClients = ({ handlerSelect }) => {
-    const { setLoading, user } = useContext(AuthContext);
-    const [listClients, setListClients] = useState([]);
-
-
-    useEffect(() => {
-        try {
-            setLoading(true);
-            const db = getDatabase();
-            const clientsRef = ref(db, `users/${user.id}/clients/`);
-            onValue(clientsRef, (snapshot) => {
-                setListClients([]);
-
-                snapshot.forEach(item => {
-                    let data = { id: item.key, name: item.val().name, phone: item.val().phone };
-                    setListClients(oldArray => [...oldArray, data]);
-                });
-               
-            })
-        } catch (error) {
-
-        }
-        setLoading(false);
-
-    }, [])
-
+const FlatListClients = ({ clients, handlerSelect }) => {
     return (
         <FlatList
             showsVerticalScrollIndicator={false}
-            data={listClients}
+            data={clients}
             keyExtractor={item => item.id}
             renderItem={({ item }) => (
                 <Card onPress={() => handlerSelect(item)}>
@@ -43,4 +18,8 @@ const FlatListClients = ({ handlerSelect }) => {
     );
 }
 
-export default FlatListClients;
+const enhance = withObservables([], () => ({
+    clients: observeClients(),
+}));
+
+export default enhance(FlatListClients);

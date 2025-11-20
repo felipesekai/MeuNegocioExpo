@@ -1,15 +1,14 @@
 import React, {useContext, useRef } from 'react';
-import { View } from 'react-native';
-import { Background } from '../../utils/Style';
+import { TouchableOpacity } from 'react-native';
 import { AuthContext } from '../../contexts/auth';
-import { Container } from './styles';
+import { Container, Link, LinkText } from './styles';
 import { Form } from '@unform/mobile';
 import Input from './Input';
 import MyButton from '../../components/MyButton';
 import * as Yup from 'yup';
 import { errorMenssage } from '../../utils/Strings';
  
-const SignUp = () => {
+const SignUp = ({ onSwitchToSignIn }) => {
     const { signUp } = useContext(AuthContext);
 
     const formRef = useRef(null);
@@ -48,19 +47,22 @@ const SignUp = () => {
         }
     }
     return (
-        <Background>
-            <Container>
-                <Form style={{ width: '90%' }} ref={formRef} onSubmit={handleSubmit}>
-                    <Input name="name" label="Nome:" />
-                    <Input name="email" label="Email:" type="email" />
-                    <Input name="repeatEmail" label="Confirme o Email:" type="email" />
-                    <Input name="password" label="Senha:" type="password" />
-                    <Input name="repeatPassword" label="Repita a senha:" type="password" />
+        <Container>
+            <Form style={{ width: '90%' }} ref={formRef} onSubmit={handleSubmit}>
+                <Input name="name" label="Nome:" />
+                <Input name="email" label="Email:" type="email" />
+                <Input name="repeatEmail" label="Confirme o Email:" type="email" />
+                <Input name="password" label="Senha:" type="password" />
+                <Input name="repeatPassword" label="Repita a senha:" type="password" />
 
-                </Form>
-                <MyButton title={"Cadastrar"} onClick={() => formRef.current.submitForm()} />
-            </Container>
-        </Background>
+            </Form>
+            <MyButton title={"Cadastrar"} onClick={() => formRef.current.submitForm()} />
+            <TouchableOpacity onPress={onSwitchToSignIn}>
+                <Link>
+                    <LinkText>Já tenho uma conta</LinkText>
+                </Link>
+            </TouchableOpacity>
+        </Container>
     );
 }
 

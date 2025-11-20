@@ -6,7 +6,7 @@ import { Background } from '../../utils/Style';
 import FloatingButton, { Icons } from '../../components/FloatingButton';
 import FlatListProducts from './FlatListProducts';
 import NewProduct from './NewProduct';
-import { insertProduct, updateProduct, deleteProduct } from '../../database';
+import { createProduct, updateProduct, deleteProduct } from '../../database/repository';
 import { AuthContext } from '../../contexts/auth';
 import EditProduct from './EditProduct';
 
@@ -15,54 +15,46 @@ const Product = () => {
     const [modalNewVisibility,setModalNewVisibility] = useState(false);
     const [modalEditVisibility,setModalEditVisibility] = useState(false);
     const [productEdit,setProductEdit] = useState({});
-    const {user, loading, setLoading, theme} = useContext(AuthContext);
+    const { loading, setLoading, theme} = useContext(AuthContext);
  
-    function addNewProduct(product) {
+    async function addNewProduct(product) {
         setLoading(true);
-        insertProduct(user.id, product)
-        .then(()=> {
+        try {
+            await createProduct({ name: product.name, price: parseFloat(product.price) });
             alert('Produto cadastrado!');
             setModalNewVisibility(false);
-        })
-        .catch((error)=>{
-            alert('erro ao cadastrar Produto!')
-
-        })
-        .finally(()=>{
+        } catch (error) {
+            alert('Erro ao cadastrar Produto!');
+            console.log(error);
+        } finally {
             setLoading(false);
-        })
+        }
     } 
-    function handlerEditProduct(product) {
+
+    async function handlerEditProduct(product) {
         setLoading(true);
-        
-        updateProduct(user.id, product)
-        .then(()=> {
-            // alert('Alteração Feita!')
+        try {
+            await updateProduct({ productId: product.id, name: product.name, price: parseFloat(product.price) });
             setModalEditVisibility(false);
-
-        })
-        .catch((error)=>{
-            Alert.alert('Ops...','erro ao Alterar Produto!')
-
-        })
-        .finally(()=>{
+        } catch (error) {
+            Alert.alert('Ops...','Erro ao Alterar Produto!');
+            console.log(error);
+        } finally {
             setLoading(false);
-        })
+        }
     }   
-    function handlerDeleteProduct(product) {
-        setLoading(true);
-        
-        deleteProduct(user.id, product)
-        .then(()=> {
-            Alert.alert('Produto excluido!','');
-        })
-        .catch((error)=>{
-            Alert.alert('Ops...','erro ao deletar Produto!')
 
-        })
-        .finally(()=>{
+    async function handlerDeleteProduct(product) {
+        setLoading(true);
+        try {
+            await deleteProduct(product.id);
+            Alert.alert('Produto excluido!','');
+        } catch (error) {
+            Alert.alert('Ops...','Erro ao deletar Produto!');
+            console.log(error);
+        } finally {
             setLoading(false);
-        })
+        }
     } 
     
     return (
@@ -75,11 +67,10 @@ const Product = () => {
                 <TextHL>Preço</TextHL>
             </HeaderList>
             <Container>
-            {loading ? <ActivityIndicator size={30} color={theme.primaryColor} /> 
-            : <FlatListProducts userId={user.id} 
-            openEdit={setModalEditVisibility} 
-            itemEdit={setProductEdit} 
-            handlerDelete={handlerDeleteProduct} />}
+                <FlatListProducts
+                    openEdit={setModalEditVisibility} 
+                    itemEdit={setProductEdit} 
+                    handlerDelete={handlerDeleteProduct} />
             </Container>
 
             <FloatingButton onClick={() => setModalNewVisibility(true)} icon={Icons("addchart", 30, 'white')} />

@@ -1,43 +1,45 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { FlatList } from 'react-native';
+import withObservables from '@nozbe/with-observables';
 import { Container } from './styles';
 import CardItens from './CardItens';
-import { getAllProduct } from '../../../database';
+import { observeProducts } from '../../../database/repository';
 import { AuthContext } from '../../../contexts/auth';
 import ActiviteIndicatorCenter from '../../../components/ActiviteIndicatorCenter';
-const FlatListProducts = ({ setList, list, _total, _setTotal }) => {
-    const { user,loading, setLoading, theme } = useContext(AuthContext);
+
+const ProductList = ({ products, setList, list, _total, _setTotal }) => {
+    const { theme } = useContext(AuthContext);
 
     useEffect(() => {
-        setList([]);
-        setLoading(true);
-        getAllProduct(user.id).then((products) => {
-            products.forEach((product) => {
-                let data = { id: product.key, name: product.val().name, price: product.val().price, quantity: 0 }
-                setList(oldArray => [...oldArray, data]);                
-            });
-           
-        }).catch((error) => { })
-        .finally(()=>{setLoading(false);})
+        if (products) {
+            const productListWithQuantity = products.map(product => ({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                quantity: 0
+            }));
+            setList(productListWithQuantity);
+        }
+    }, [products]); // Effect runs when products from DB change
 
-    }, [])
-   if(loading) {
-    return (
-         
-        <ActiviteIndicatorCenter size={30} color={theme.primaryColor} />)
-   }
+    // While the parent list is being populated, show loading.
+    if (list.length === 0) {
+        return <ActiviteIndicatorCenter size={30} color={theme.primaryColor} />;
+    }
+
     return (
         <Container>
             <FlatList
                 data={list}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (<CardItens totalItem={_total} sumTotal={(item)=>_setTotal(item)} item={item} />)}
+                renderItem={({ item }) => (<CardItens totalItem={_total} sumTotal={(item) => _setTotal(item)} item={item} />)}
             />
-
-
         </Container>
-        
-        );
+    );
 }
 
-export default FlatListProducts;
+const enhance = withObservables(['products'], () => ({
+    products: observeProducts(),
+}));
+
+export default enhance(ProductList);

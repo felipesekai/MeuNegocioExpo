@@ -12,7 +12,7 @@ import ModalClientSelector from './ModalClientSelector';
 import MyButton from '../../components/MyButton';
 import * as Yup from 'yup';
 import { AuthContext } from '../../contexts/auth';
-import { insertNewOrder } from '../../database';
+import { createOrder } from '../../database/repository';
 
 const NewRequest = ({ onClose }) => {
     const formRef = useRef(null);
@@ -21,29 +21,27 @@ const NewRequest = ({ onClose }) => {
     const [clientPickerStatus, setClientPickerStatus] = useState(false);
     const [clientSelected, setClientSelected] = useState(null);
     const [date, setDate] = useState(new Date());
-    const [dateformat, setDateformat] = useState(null);
+    const [dateformat, setDateformat] = useState(format(new Date(), 'dd/MM/yyyy'));
     const [total, setTotal] = useState(0);
-    const { user, theme } = useContext(AuthContext);
+    const { theme } = useContext(AuthContext);
     
     useEffect(() => {
-
-
-        if (products.length > 0 || products !== []) {
-            setTotal(0);
+        if (products.length > 0) {
             let _aux = 0;
-
             products.forEach((product) => {
                 _aux += parseFloat(product.quantity * product.price) || 0;
             });
-            setTotal(_aux)
+            setTotal(_aux);
+        } else {
+            setTotal(0);
         }
-    }, [total]);
+    }, [products]);
 
-    function hanldeSelectDate(date) {
+    function hanldeSelectDate(selectedDate) {
         setDatePickerStatus(Platform.OS === 'ios');
-        if (date === null) { return; }
-        setDate(date);
-        setDateformat(format(date, 'dd/MM/yyyy'));
+        if (selectedDate === null) { return; }
+        setDate(selectedDate);
+        setDateformat(format(selectedDate, 'dd/MM/yyyy'));
     }
 
     function hanldeSelectClient(client) {
@@ -52,10 +50,14 @@ const NewRequest = ({ onClose }) => {
     }
 
     async function handleSubmitForm() {
+        const orderProducts = products
+            .filter((item) => item.quantity > 0)
+            .map(p => ({ id: p.id, quantity: p.quantity }));
+
         const data = {
             client: clientSelected,
             date: dateformat,
-            products: products.filter((item) => item.quantity > 0),
+            products: orderProducts,
             total: total
         }
 
@@ -76,21 +78,27 @@ const NewRequest = ({ onClose }) => {
                 },
                 {
                     text: 'ok',
-                    onPress: () => {
-                        insertNewOrder(user.id, clientSelected, data)
-                            .then(() => {
-                                Alert.alert("Pedidio realizado!", '',
-                                    [{
-                                        text: 'ok',
-                                        onPress: () => onClose(),
-                                        style: 'cancel'
-                                    }])
-                            }).catch((err) => { alert(err.message) })
+                    onPress: async () => {
+                        try {
+                            await createOrder({
+                                clientId: data.client.id,
+                                status: 'open',
+                                products: data.products
+                            });
+                            Alert.alert("Pedidio realizado!", '',
+                                [{
+                                    text: 'ok',
+                                    onPress: () => onClose(),
+                                    style: 'cancel'
+                                }]
+                            );
+                        } catch (err) {
+                            alert(err.message);
+                        }
                     }
 
                 }]
             );
-
 
         } catch (error) {
 
@@ -115,9 +123,7 @@ const NewRequest = ({ onClose }) => {
 
                 });
                 formRef.current.setErrors(valitadeErros);
-
             }
-
         }
     }
 
@@ -152,7 +158,7 @@ const NewRequest = ({ onClose }) => {
                             </TouchableOpacity>
 
                         </ContainerClient>
-                        <FlatListProducts list={products} setList={(list) => setProducts(list)} _total={total} _setTotal={setTotal} />
+                        <FlatListProducts list={products} setList={setProducts} _total={total} _setTotal={setTotal} />
                         <ButtonView>
                             <MyButton title={'Confirmar'} onClick={() => formRef.current.submitForm()} />
                         </ButtonView>
