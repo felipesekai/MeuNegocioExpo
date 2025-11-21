@@ -34,7 +34,7 @@ const ProductList = ({ products, setList, list, _total, _setTotal }) => { // 'pr
             <FlatList
                 data={list}
                 keyExtractor={(item) => item._id}
-                renderItem={({ item }) => (<CardItens totalItem={_total} sumTotal={(item) => _setTotal(item)} item={item} />)}
+                renderItem={({ item }) => (<CardItens sumTotal={_setTotal} item={item} />)}
             />
         </Container>
     );
