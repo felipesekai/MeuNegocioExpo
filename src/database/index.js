@@ -1,4 +1,4 @@
-import { executeSql, runInTransaction, mapDate, generateId } from './sqlite';
+import { executeSql, queryAll, queryFirst, runInTransaction, mapDate, generateId } from './sqlite';
 
 const toMillis = (value, fallback) => {
   if (value instanceof Date) return value.getTime();
@@ -76,13 +76,12 @@ export async function saveClient(clientData) {
 }
 
 export async function getAllClients() {
-  const result = await executeSql(`SELECT * FROM clients ORDER BY name COLLATE NOCASE ASC`);
-  return result.rows._array.map(mapClientRow);
+  const rows = await queryAll(`SELECT * FROM clients ORDER BY name COLLATE NOCASE ASC`);
+  return rows.map(mapClientRow);
 }
 
 export async function getClientById(clientId) {
-  const result = await executeSql(`SELECT * FROM clients WHERE _id = ? LIMIT 1`, [clientId]);
-  const row = result.rows._array?.[0];
+  const row = await queryFirst(`SELECT * FROM clients WHERE _id = ? LIMIT 1`, [clientId]);
   return row ? mapClientRow(row) : null;
 }
 
@@ -113,13 +112,12 @@ export async function saveProduct(productData) {
 }
 
 export async function getAllProducts() {
-  const result = await executeSql(`SELECT * FROM products ORDER BY name COLLATE NOCASE ASC`);
-  return result.rows._array.map(mapProductRow);
+  const rows = await queryAll(`SELECT * FROM products ORDER BY name COLLATE NOCASE ASC`);
+  return rows.map(mapProductRow);
 }
 
 export async function getProductById(productId) {
-  const result = await executeSql(`SELECT * FROM products WHERE _id = ? LIMIT 1`, [productId]);
-  const row = result.rows._array?.[0];
+  const row = await queryFirst(`SELECT * FROM products WHERE _id = ? LIMIT 1`, [productId]);
   return row ? mapProductRow(row) : null;
 }
 
@@ -133,25 +131,25 @@ export async function createOrder({ clientId, status, products, orderDate }) {
   const orderDateMs = toMillis(orderDate, now);
   let calculatedTotal = 0;
 
-  await runInTransaction((tx) => {
-    tx.executeSql(
+  await runInTransaction(async (tx) => {
+    await tx.runAsync(
       `INSERT INTO orders (_id, clientId, orderDate, totalAmount, status, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [orderId, clientId, orderDateMs, 0, status || 'pending', now, now],
     );
 
-    products.forEach((productItem) => {
+    for (const productItem of products) {
       const orderProductId = generateId();
       const qty = Number(productItem.quantity) || 0;
       const unitPrice = Number(productItem.unitPrice) || 0;
       calculatedTotal += qty * unitPrice;
 
-      tx.executeSql(
+      await tx.runAsync(
         `INSERT INTO order_products (_id, orderId, productId, quantity, unitPrice, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [orderProductId, orderId, productItem.productId, qty, unitPrice, now, now],
       );
-    });
+    }
 
-    tx.executeSql(`UPDATE orders SET totalAmount = ? WHERE _id = ?`, [calculatedTotal, orderId]);
+    await tx.runAsync(`UPDATE orders SET totalAmount = ? WHERE _id = ?`, [calculatedTotal, orderId]);
   });
 
   return getOrderById(orderId);
@@ -186,13 +184,12 @@ export async function saveOrderRecord(orderData) {
 }
 
 export async function getAllOrders() {
-  const result = await executeSql(`SELECT * FROM orders ORDER BY orderDate DESC`);
-  return result.rows._array.map(mapOrderRow);
+  const rows = await queryAll(`SELECT * FROM orders ORDER BY orderDate DESC`);
+  return rows.map(mapOrderRow);
 }
 
 export async function getOrderById(orderId) {
-  const result = await executeSql(`SELECT * FROM orders WHERE _id = ? LIMIT 1`, [orderId]);
-  const row = result.rows._array?.[0];
+  const row = await queryFirst(`SELECT * FROM orders WHERE _id = ? LIMIT 1`, [orderId]);
   return row ? mapOrderRow(row) : null;
 }
 
@@ -203,28 +200,28 @@ export async function updateOrderStatus(orderId, status) {
 }
 
 export async function deleteOrder(orderId) {
-  await runInTransaction((tx) => {
-    tx.executeSql(`DELETE FROM order_products WHERE orderId = ?`, [orderId]);
-    tx.executeSql(`DELETE FROM orders WHERE _id = ?`, [orderId]);
+  await runInTransaction(async (tx) => {
+    await tx.runAsync(`DELETE FROM order_products WHERE orderId = ?`, [orderId]);
+    await tx.runAsync(`DELETE FROM orders WHERE _id = ?`, [orderId]);
   });
 }
 
 export async function getOrderProductsByOrderId(orderId) {
-  const result = await executeSql(`SELECT * FROM order_products WHERE orderId = ?`, [orderId]);
-  return result.rows._array.map(mapOrderProductRow);
+  const rows = await queryAll(`SELECT * FROM order_products WHERE orderId = ?`, [orderId]);
+  return rows.map(mapOrderProductRow);
 }
 
 export async function getClientsUpdatedSince(timestamp) {
-  const result = await executeSql(`SELECT * FROM clients WHERE updatedAt >= ?`, [timestamp]);
-  return result.rows._array.map(mapClientRow);
+  const rows = await queryAll(`SELECT * FROM clients WHERE updatedAt >= ?`, [timestamp]);
+  return rows.map(mapClientRow);
 }
 
 export async function getProductsUpdatedSince(timestamp) {
-  const result = await executeSql(`SELECT * FROM products WHERE updatedAt >= ?`, [timestamp]);
-  return result.rows._array.map(mapProductRow);
+  const rows = await queryAll(`SELECT * FROM products WHERE updatedAt >= ?`, [timestamp]);
+  return rows.map(mapProductRow);
 }
 
 export async function getOrdersUpdatedSince(timestamp) {
-  const result = await executeSql(`SELECT * FROM orders WHERE updatedAt >= ?`, [timestamp]);
-  return result.rows._array.map(mapOrderRow);
+  const rows = await queryAll(`SELECT * FROM orders WHERE updatedAt >= ?`, [timestamp]);
+  return rows.map(mapOrderRow);
 }

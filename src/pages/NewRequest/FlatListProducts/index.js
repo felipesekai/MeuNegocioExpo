@@ -39,3 +39,5 @@ const ProductList = ({ products, setList, list, _total, _setTotal }) => { // 'pr
         </Container>
     );
 }
+
+export default ProductList;

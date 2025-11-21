@@ -8,7 +8,7 @@ import InputText from '../../../components/Form/InputText';
 import InputPhone from '../../../components/Form/InputPhone';
 import * as Yup from 'yup';
 
-export default function NewClient({ setClient }) {
+export default function NewClient({ setClient, modalClose }) {
 
   // const { user } = useContext(AuthContext);
   const formRef = useRef(null);

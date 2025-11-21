@@ -1,91 +1,77 @@
 import * as SQLite from 'expo-sqlite';
 
-const db = SQLite.openDatabase('meunegocio.db');
+const db = SQLite.openDatabaseSync('meunegocio.db');
 
 const ensureTables = (() => {
   let initialized;
   return () => {
     if (initialized) return initialized;
-    initialized = new Promise((resolve, reject) => {
-      db.transaction(
-        (tx) => {
-          tx.executeSql(
-            `CREATE TABLE IF NOT EXISTS clients (
-              _id TEXT PRIMARY KEY NOT NULL,
-              name TEXT NOT NULL,
-              phone TEXT,
-              email TEXT,
-              address TEXT,
-              createdAt INTEGER,
-              updatedAt INTEGER
-            );`
-          );
-          tx.executeSql(
-            `CREATE TABLE IF NOT EXISTS products (
-              _id TEXT PRIMARY KEY NOT NULL,
-              name TEXT NOT NULL,
-              description TEXT,
-              price REAL NOT NULL,
-              createdAt INTEGER,
-              updatedAt INTEGER
-            );`
-          );
-          tx.executeSql(
-            `CREATE TABLE IF NOT EXISTS orders (
-              _id TEXT PRIMARY KEY NOT NULL,
-              clientId TEXT NOT NULL,
-              orderDate INTEGER,
-              totalAmount REAL,
-              status TEXT,
-              createdAt INTEGER,
-              updatedAt INTEGER
-            );`
-          );
-          tx.executeSql(
-            `CREATE TABLE IF NOT EXISTS order_products (
-              _id TEXT PRIMARY KEY NOT NULL,
-              orderId TEXT NOT NULL,
-              productId TEXT NOT NULL,
-              quantity INTEGER NOT NULL,
-              unitPrice REAL NOT NULL,
-              createdAt INTEGER,
-              updatedAt INTEGER
-            );`
-          );
-        },
-        (error) => reject(error),
-        () => resolve(true),
-      );
-    });
+    initialized = db
+      .execAsync(
+        `
+        PRAGMA foreign_keys = ON;
+        CREATE TABLE IF NOT EXISTS clients (
+          _id TEXT PRIMARY KEY NOT NULL,
+          name TEXT NOT NULL,
+          phone TEXT,
+          email TEXT,
+          address TEXT,
+          createdAt INTEGER,
+          updatedAt INTEGER
+        );
+        CREATE TABLE IF NOT EXISTS products (
+          _id TEXT PRIMARY KEY NOT NULL,
+          name TEXT NOT NULL,
+          description TEXT,
+          price REAL NOT NULL,
+          createdAt INTEGER,
+          updatedAt INTEGER
+        );
+        CREATE TABLE IF NOT EXISTS orders (
+          _id TEXT PRIMARY KEY NOT NULL,
+          clientId TEXT NOT NULL,
+          orderDate INTEGER,
+          totalAmount REAL,
+          status TEXT,
+          createdAt INTEGER,
+          updatedAt INTEGER
+        );
+        CREATE TABLE IF NOT EXISTS order_products (
+          _id TEXT PRIMARY KEY NOT NULL,
+          orderId TEXT NOT NULL,
+          productId TEXT NOT NULL,
+          quantity INTEGER NOT NULL,
+          unitPrice REAL NOT NULL,
+          createdAt INTEGER,
+          updatedAt INTEGER
+        );
+        `
+      )
+      .then(() => true);
     return initialized;
   };
 })();
 
 export async function executeSql(sql, params = []) {
   await ensureTables();
-  return new Promise((resolve, reject) => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        sql,
-        params,
-        (_, result) => resolve(result),
-        (_, error) => {
-          reject(error);
-          return true;
-        },
-      );
-    });
-  });
+  return db.runAsync(sql, params);
+}
+
+export async function queryAll(sql, params = []) {
+  await ensureTables();
+  const rows = await db.getAllAsync(sql, params);
+  return rows;
+}
+
+export async function queryFirst(sql, params = []) {
+  const rows = await queryAll(sql, params);
+  return rows?.[0] || null;
 }
 
 export async function runInTransaction(callback) {
   await ensureTables();
-  return new Promise((resolve, reject) => {
-    db.transaction(
-      (tx) => callback(tx),
-      (error) => reject(error),
-      () => resolve(true),
-    );
+  await db.withExclusiveTransactionAsync(async (tx) => {
+    await callback(tx);
   });
 }
 
