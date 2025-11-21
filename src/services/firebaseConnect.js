@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { firebaseConfig } from "../../.envi";
+// import { firebaseConfig } from "../../.envi";
 
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
