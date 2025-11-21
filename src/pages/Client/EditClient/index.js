@@ -25,7 +25,7 @@ export default function NewClient({ updateClient, initialValue, modalClose }) {
       });
 
       await scheme.validate(data, { abortEarly: false });
-      let newData = {...{key: initialValue.key}, ...data}
+      let newData = {...data, id: initialValue.id } // Pass the ID for update
       updateClient(newData);
       // console.log(newData);
 
@@ -74,6 +74,8 @@ export default function NewClient({ updateClient, initialValue, modalClose }) {
           <Form initialData={initialValue} style={{ width: '100%' }} onSubmit={handleSubmit} ref={formRef}>
             <InputText name='name' label={"Nome"} type="text" />
             <InputPhone name='phone' label={"Telefone"}/>
+            <InputText name='email' label={"Email"} type="email" keyboardType="email-address" />
+            <InputText name='address' label={"Endereço"} type="text" />
           </Form>
 
         </ModalContainer>

@@ -1,170 +1,167 @@
-import { database } from '../database';
-import { getUpdatedClients, getUpdatedProducts, getUpdatedOrders, clientsCollection, productsCollection, ordersCollection } from '../database/repository';
 import * as firebase from './firebaseService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  deleteClient,
+  deleteOrder,
+  deleteProduct,
+  getClientsUpdatedSince,
+  getOrdersUpdatedSince,
+  getProductsUpdatedSince,
+  saveClient,
+  saveOrderRecord,
+  saveProduct,
+  getClientById,
+  getProductById,
+  getOrderById,
+} from '../database';
 
 const LAST_SYNCED_AT_KEY = 'last_synced_at';
 
-// Puxa as alterações do Firebase para o banco de dados local
+const toDate = (timestamp) => (timestamp ? new Date(timestamp) : new Date());
+
 async function pullChanges(userId, lastSyncedAt) {
-    console.log('Pulling changes...');
+  console.log('Pulling changes...');
+  const since = lastSyncedAt || 0;
 
-    const remoteClients = await firebase.getFBUpdatedClients(userId, lastSyncedAt) || {};
-    const remoteProducts = await firebase.getFBUpdatedProducts(userId, lastSyncedAt) || {};
-    const remoteOrders = await firebase.getFBUpdatedOrders(userId, lastSyncedAt) || {};
+  const remoteClients = (await firebase.getFBUpdatedClients(userId, since)) || {};
+  const remoteProducts = (await firebase.getFBUpdatedProducts(userId, since)) || {};
+  const remoteOrders = (await firebase.getFBUpdatedOrders(userId, since)) || {};
 
-    await database.write(async () => {
-        // Clients
-        for (const clientId in remoteClients) {
-            const remoteClient = remoteClients[clientId];
-            const localClient = await clientsCollection.find(clientId).catch(() => null);
+  for (const [clientId, remoteClient] of Object.entries(remoteClients)) {
+    const localClient = await getClientById(clientId);
 
-            if (remoteClient._status === 'deleted') {
-                if (localClient) await localClient.markAsDeleted();
-                continue;
-            }
+    if (remoteClient._status === 'deleted') {
+      if (localClient) await deleteClient(clientId);
+      continue;
+    }
 
-            if (localClient) {
-                if (localClient.updatedAt < remoteClient.updated_at) {
-                    await localClient.update(record => {
-                        record.name = remoteClient.name;
-                        record.phone = remoteClient.phone;
-                    });
-                }
-            } else {
-                await clientsCollection.create(record => {
-                    record._raw.id = clientId;
-                    record.name = remoteClient.name;
-                    record.phone = remoteClient.phone;
-                });
-            }
-        }
+    const updatedAt = toDate(remoteClient.updated_at);
+    const localUpdatedAt = localClient?.updatedAt?.getTime?.() || 0;
 
-        // Products
-        for (const productId in remoteProducts) {
-            const remoteProduct = remoteProducts[productId];
-            const localProduct = await productsCollection.find(productId).catch(() => null);
+    if (!localClient || localUpdatedAt < updatedAt.getTime()) {
+      await saveClient({
+        _id: clientId,
+        name: remoteClient.name || '',
+        phone: remoteClient.phone || null,
+        email: remoteClient.email || null,
+        address: remoteClient.address || null,
+        createdAt: remoteClient.created_at ? toDate(remoteClient.created_at) : updatedAt,
+        updatedAt,
+      });
+    }
+  }
 
-            if (remoteProduct._status === 'deleted') {
-                if (localProduct) await localProduct.markAsDeleted();
-                continue;
-            }
+  for (const [productId, remoteProduct] of Object.entries(remoteProducts)) {
+    const localProduct = await getProductById(productId);
 
-            if (localProduct) {
-                if (localProduct.updatedAt < remoteProduct.updated_at) {
-                    await localProduct.update(record => {
-                        record.name = remoteProduct.name;
-                        record.price = remoteProduct.price;
-                    });
-                }
-            } else {
-                await productsCollection.create(record => {
-                    record._raw.id = productId;
-                    record.name = remoteProduct.name;
-                    record.price = remoteProduct.price;
-                });
-            }
-        }
-        
-        // Orders (simplified)
-        for (const orderId in remoteOrders) {
-            const remoteOrder = remoteOrders[orderId];
-            const localOrder = await ordersCollection.find(orderId).catch(() => null);
+    if (remoteProduct._status === 'deleted') {
+      if (localProduct) await deleteProduct(productId);
+      continue;
+    }
 
-            if (remoteOrder._status === 'deleted') {
-                if (localOrder) await localOrder.markAsDeleted();
-                continue;
-            }
+    const updatedAt = toDate(remoteProduct.updated_at);
+    const localUpdatedAt = localProduct?.updatedAt?.getTime?.() || 0;
 
-            if (localOrder) {
-                if (localOrder.updatedAt < remoteOrder.updated_at) {
-                    await localOrder.update(record => {
-                        record.status = remoteOrder.status;
-                        record.client.id = remoteOrder.clientId;
-                    });
-                }
-            } else {
-                await ordersCollection.create(record => {
-                    record._raw.id = orderId;
-                    record.status = remoteOrder.status;
-                    record.client.id = remoteOrder.clientId;
-                });
-            }
-        }
-    });
+    if (!localProduct || localUpdatedAt < updatedAt.getTime()) {
+      await saveProduct({
+        _id: productId,
+        name: remoteProduct.name || '',
+        description: remoteProduct.description || null,
+        price: Number(remoteProduct.price) || 0,
+        createdAt: remoteProduct.created_at ? toDate(remoteProduct.created_at) : updatedAt,
+        updatedAt,
+      });
+    }
+  }
+
+  for (const [orderId, remoteOrder] of Object.entries(remoteOrders)) {
+    const clientIdentifier = remoteOrder.clientId || remoteOrder.client_id;
+    if (!clientIdentifier) continue;
+
+    const localOrder = await getOrderById(orderId);
+
+    if (remoteOrder._status === 'deleted') {
+      if (localOrder) await deleteOrder(orderId);
+      continue;
+    }
+
+    const updatedAt = toDate(remoteOrder.updated_at);
+    const localUpdatedAt = localOrder?.updatedAt?.getTime?.() || 0;
+
+    if (!localOrder || localUpdatedAt < updatedAt.getTime()) {
+      await saveOrderRecord({
+        _id: orderId,
+        clientId: clientIdentifier,
+        status: remoteOrder.status || localOrder?.status || 'pending',
+        totalAmount: Number(remoteOrder.totalAmount) || localOrder?.totalAmount || 0,
+        orderDate: remoteOrder.orderDate ? toDate(remoteOrder.orderDate) : updatedAt,
+        updatedAt,
+      });
+    }
+  }
 }
 
-// Empurra as alterações locais para o Firebase
+const serializeClient = (client) => ({
+  id: client._id,
+  name: client.name,
+  phone: client.phone || '',
+  updated_at: client.updatedAt ? client.updatedAt.getTime() : Date.now(),
+  _status: 'updated',
+});
+
+const serializeProduct = (product) => ({
+  id: product._id,
+  name: product.name,
+  price: product.price,
+  updated_at: product.updatedAt ? product.updatedAt.getTime() : Date.now(),
+  _status: 'updated',
+});
+
+const serializeOrder = (order) => ({
+  id: order._id,
+  client_id: order.clientId || '',
+  status: order.status,
+  updated_at: order.updatedAt ? order.updatedAt.getTime() : Date.now(),
+  _status: 'updated',
+});
+
 async function pushChanges(userId, lastSyncedAt) {
-    console.log('Pushing changes...');
+  console.log('Pushing changes...');
+  const sinceDate = new Date(lastSyncedAt || 0);
 
-    // Clientes
-    const updatedClients = await getUpdatedClients(lastSyncedAt);
-    if (updatedClients.length > 0) {
-        console.log(`Pushing ${updatedClients.length} client changes.`);
-        for (const client of updatedClients) {
-            const rawClient = client._raw;
-            if (rawClient._status === 'deleted') {
-                await firebase.deleteClient(userId, rawClient.id);
-            } else {
-                await firebase.upsertClient(userId, rawClient);
-            }
-        }
-    }
+  const updatedClients = await getClientsUpdatedSince(sinceDate.getTime());
+  for (const client of updatedClients) {
+    await firebase.upsertClient(userId, serializeClient(client));
+  }
 
-    // Produtos
-    const updatedProducts = await getUpdatedProducts(lastSyncedAt);
-    if (updatedProducts.length > 0) {
-        console.log(`Pushing ${updatedProducts.length} product changes.`);
-        for (const product of updatedProducts) {
-            const rawProduct = product._raw;
-            if (rawProduct._status === 'deleted') {
-                await firebase.deleteProduct(userId, rawProduct.id);
-            } else {
-                await firebase.upsertProduct(userId, rawProduct);
-            }
-        }
-    }
+  const updatedProducts = await getProductsUpdatedSince(sinceDate.getTime());
+  for (const product of updatedProducts) {
+    await firebase.upsertProduct(userId, serializeProduct(product));
+  }
 
-    // Pedidos (simplificado, sem os itens do pedido por enquanto)
-    const updatedOrders = await getUpdatedOrders(lastSyncedAt);
-    if (updatedOrders.length > 0) {
-        console.log(`Pushing ${updatedOrders.length} order changes.`);
-        for (const order of updatedOrders) {
-            const rawOrder = order._raw;
-            if (rawOrder._status === 'deleted') {
-                await firebase.deleteOrder(userId, rawOrder.id);
-            } else {
-                 // TODO: Sincronizar os itens do pedido (order_products)
-                await firebase.upsertOrder(userId, rawOrder);
-            }
-        }
-    }
+  const updatedOrders = await getOrdersUpdatedSince(sinceDate.getTime());
+  for (const order of updatedOrders) {
+    await firebase.upsertOrder(userId, serializeOrder(order));
+  }
 }
 
 export async function synchronize(userId) {
-    try {
-        const lastSyncedAt = await AsyncStorage.getItem(LAST_SYNCED_AT_KEY);
-        // lastSyncedAtTime = 0 for first sync
-        const lastSyncedAtTime = lastSyncedAt ? parseInt(lastSyncedAt, 10) + 1 : 0;
+  try {
+    const lastSyncedAt = await AsyncStorage.getItem(LAST_SYNCED_AT_KEY);
+    const lastSyncedAtTime = lastSyncedAt ? parseInt(lastSyncedAt, 10) : 0;
 
-        console.log(`Starting sync for user ${userId}. Last sync: ${new Date(lastSyncedAtTime)}`);
+    console.log(`Starting sync for user ${userId}. Last sync: ${new Date(lastSyncedAtTime)}`);
 
-        // PULL: Baixar primeiro para obter as alterações mais recentes
-        await pullChanges(userId, lastSyncedAtTime);
+    await pullChanges(userId, lastSyncedAtTime);
+    await pushChanges(userId, lastSyncedAtTime);
 
-        // PUSH: Enviar as alterações locais depois
-        await pushChanges(userId, lastSyncedAtTime);
+    const newSyncedAt = Date.now();
+    await AsyncStorage.setItem(LAST_SYNCED_AT_KEY, newSyncedAt.toString());
 
-        // Marcar a nova data de sincronização
-        const newSyncedAt = Date.now();
-        await AsyncStorage.setItem(LAST_SYNCED_AT_KEY, newSyncedAt.toString());
-
-        console.log(`Sync finished successfully at ${new Date(newSyncedAt)}`);
-        return { success: true };
-
-    } catch (error) {
-        console.error('Sync failed:', error);
-        return { success: false, error: error };
-    }
+    console.log(`Sync finished successfully at ${new Date(newSyncedAt)}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Sync failed:', error);
+    return { success: false, error };
+  }
 }

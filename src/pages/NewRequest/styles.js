@@ -1,4 +1,5 @@
 import styled from 'styled-components/native';
+import { Platform } from 'react-native';
 
 
 export const Header = styled.View`
@@ -7,7 +8,7 @@ margin: 15px 10px;
 align-items: center;
 `;
 export const HeaderBackground = styled.View`
-background-color: ${props=> props.theme.primaryColor};
+background-color: ${props => props.theme.primaryColor};
 box-shadow: 1px 1px 1px ${Platform.OS === 'ios' ? 'rgba(0,0,0,0.18)' : '#000'};
 elevation: 2;
 `;
@@ -24,7 +25,7 @@ justify-content:space-between;
 margin: 5px 10px;
 `;
 export const Title = styled.Text`
-color: ${props=>props.theme.backgroundColor};
+color: ${props => props.theme.backgroundColor};
 margin: 2px 15px;
 font-size: 18px;
 font-weight: bold;

@@ -13,7 +13,7 @@ const CardProducts = ({itens: item, editItem, itemDelete }) => {
           [
             {
               text: "sim",
-              onPress: () => itemDelete(item),
+              onPress: () => itemDelete({ id: item._id }),
 
             },
             {

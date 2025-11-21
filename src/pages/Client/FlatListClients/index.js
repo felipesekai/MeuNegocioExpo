@@ -1,10 +1,7 @@
 import React from 'react';
 import { View, FlatList, Alert } from 'react-native';
-import withObservables from '@nozbe/with-observables';
 import { Card, ItemListText } from '../styles';
 import { alertMenssage } from '../../../utils/Strings';
-import { observeClients } from '../../../database/repository';
-import Client from '../../../database/model/Client'; // Import model for type hinting
 
 const FlatListClients = ({ clients, handlerEdit, handleDelete }) => {
     return (
@@ -12,15 +9,15 @@ const FlatListClients = ({ clients, handlerEdit, handleDelete }) => {
             <FlatList
                 showsVerticalScrollIndicator={false}
                 data={clients}
-                keyExtractor={item => item.id}
+                keyExtractor={item => item._id}
                 renderItem={({ item }) => (
-                    <Card onPress={() => handlerEdit(item)}
+                    <Card onPress={() => handlerEdit({ ...item, id: item._id })}
                         onLongPress={() => {
                             Alert.alert(alertMenssage.deleteTitle, alertMenssage.deleteClientDescription,
                                 [
                                     {
                                         text: "sim",
-                                        onPress: () => handleDelete(item),
+                                        onPress: () => handleDelete(item._id),
                                     },
                                     {
                                         text: "NÃO",
@@ -35,8 +32,4 @@ const FlatListClients = ({ clients, handlerEdit, handleDelete }) => {
     );
 }
 
-const enhance = withObservables([], () => ({
-    clients: observeClients(),
-}));
-
-export default enhance(FlatListClients);
+export default FlatListClients;

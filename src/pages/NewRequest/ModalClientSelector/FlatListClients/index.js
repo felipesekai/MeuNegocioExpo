@@ -1,25 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FlatList } from 'react-native';
-import withObservables from '@nozbe/with-observables';
 import { Card, ItemListText } from './styles';
-import { observeClients } from '../../../../database/repository';
+import { getAllClients } from '../../../../database';
 
-const FlatListClients = ({ clients, handlerSelect }) => {
+const FlatListClients = ({ handlerSelect }) => {
+    const [clients, setClients] = useState([]);
+
+    useEffect(() => {
+        async function fetchClients() {
+            try {
+                const fetchedClients = await getAllClients();
+                setClients(fetchedClients);
+            } catch (error) {
+                console.error("Error fetching clients for selector:", error);
+            }
+        }
+        fetchClients();
+    }, []);
+
     return (
         <FlatList
             showsVerticalScrollIndicator={false}
             data={clients}
-            keyExtractor={item => item.id}
+            keyExtractor={item => item._id}
             renderItem={({ item }) => (
-                <Card onPress={() => handlerSelect(item)}>
+                <Card onPress={() => handlerSelect({ ...item })}>
                     <ItemListText>{item.name}</ItemListText>
                 </Card>)}
         />
     );
 }
 
-const enhance = withObservables([], () => ({
-    clients: observeClients(),
-}));
-
-export default enhance(FlatListClients);
+export default FlatListClients;

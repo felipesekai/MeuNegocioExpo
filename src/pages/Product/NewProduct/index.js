@@ -16,22 +16,16 @@ const NewProduct = ({ onClose, setNewProduct }) => {
 
     async function handleSubmit(data) {
         const stringN = "Nome do produto é obrigatório!"
-        const stringQ = 'Quantidade do produto é obrigatório!'
         const stringP = 'Preço do produto é obrigatório!'
 
         try {
             const scheme = Yup.object().shape({
                 name: Yup.string(stringN).required(stringN),
-                quantity: Yup.number(stringQ).required(stringQ),
+                description: Yup.string().optional(), // Description is now an optional field
                 price: Yup.string(stringP).required(stringP),
             })
 
             await scheme.validate(data, { abortEarly: false });
-            let newData = {
-                name: data.name,
-                quantity: data.quantity,
-                price: data.price
-            }
 
             setNewProduct(data);
             
@@ -76,7 +70,7 @@ const NewProduct = ({ onClose, setNewProduct }) => {
 
                     <Form onSubmit={handleSubmit} style={{ width: '90%' }} ref={formRef}>
                         <InputText name="name" label="Nome" />
-                        <InputText name="quantity" label="Quantidade" keyboardType="numeric" type="number" />
+                        <InputText name="description" label="Descrição" />
                         <InputText name="price" label="Preço"  keyboardType="numeric" type="number"/>
                     </Form>
 

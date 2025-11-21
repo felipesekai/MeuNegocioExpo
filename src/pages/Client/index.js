@@ -7,7 +7,7 @@ import FloatingButton from '../../components/FloatingButton';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import FlatListClients from './FlatListClients';
 import { AuthContext } from '../../contexts/auth';
-import { createClient, updateClient, deleteClient } from '../../database/repository';
+import { saveClient, deleteClient, getAllClients } from '../../database';
 import { useTheme } from 'styled-components';
 import EditClient from './EditClient';
 import NewClient from './NewClient';
@@ -18,22 +18,38 @@ export default function Client() {
   const [modalEditVisibility, setModalEditVisibility] = useState(false);
   const [userEdit, setUserEdit] = useState(null);
   const { loading, setLoading } = useContext(AuthContext);
+  const [clients, setClients] = useState([]); // State to hold clients
 
+  useEffect(() => {
+    fetchClients();
+  }, []);
 
+  // Function to fetch clients from the local database
+  async function fetchClients() {
+    setLoading(true);
+    try {
+      const allClients = await getAllClients();
+      setClients(allClients);
+    } catch (err) {
+      console.log(err);
+      alert("Error fetching clients");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function editPerson(person) {
     setUserEdit(person);
     setModalEditVisibility(true);
-
   }
-
 
   async function addClient(client) {
     setLoading(true);
     try {
-      await createClient({ name: client.name, phone: client.phone });
+      await saveClient({ name: client.name, phone: client.phone, email: client.email, address: client.address });
       alert("Success");
       setModalVisibility(false);
+      fetchClients(); // Re-fetch clients to update the list
     } catch (err) {
       console.log(err);
       alert("Error saving client");
@@ -45,9 +61,10 @@ export default function Client() {
   async function editClient(client) {
     setLoading(true);
     try {
-      await updateClient({ clientId: client.id, name: client.name, phone: client.phone });
+      await saveClient({ _id: client.id, name: client.name, phone: client.phone, email: client.email, address: client.address });
       alert("Success");
       setModalEditVisibility(false);
+      fetchClients(); // Re-fetch clients to update the list
     } catch (err) {
       console.log(err);
       alert("Error updating client");
@@ -60,8 +77,10 @@ export default function Client() {
   async function removeClient(client) {
     setLoading(true);
     try {
-      await deleteClient(client.id);
+      const clientId = typeof client === 'string' ? client : client.id;
+      await deleteClient(clientId);
       alert("Cliente Excluído!");
+      fetchClients(); // Re-fetch clients to update the list
     } catch (err) {
       console.log(err);
       alert("Error deleting client");
@@ -71,12 +90,11 @@ export default function Client() {
     }
   }
 
-
   return (
     <Background>
       <Header />
       <Container>
-        <FlatListClients handlerEdit={editPerson} handleDelete={removeClient} />
+        <FlatListClients clients={clients} handlerEdit={editPerson} handleDelete={removeClient} />
       </Container>
 
       {modalVisibility &&

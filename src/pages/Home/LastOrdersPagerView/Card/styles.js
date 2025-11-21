@@ -1,13 +1,14 @@
 import styled from 'styled-components/native';
+import { Platform } from 'react-native';
 
 export const Container = styled.View`
-background-color: ${props=> props.theme.backgroundColor};
+background-color: ${props => props.theme.backgroundColor};
 margin: 3px 5px;
 padding: 10px;
-box-shadow: 1px 2px 1px ${Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.28)': "#000"};
+box-shadow: 1px 2px 1px ${Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.28)' : "#000"};
 elevation:3;
 border-left-width: 2px;
-border-color: ${props=> props.theme.primaryColor};
+border-color: ${props => props.theme.primaryColor};
 
 `;
 

@@ -15,13 +15,12 @@ const EditProduct = ({ onClose, initialValue, submitEdit }) => {
 
     async function handleSubmit(data) {
         const msgErrorName = "Nome do produto é obrigatório!"
-        const msgErrorQuanti = 'Quantidade do produto é obrigatório!'
         const msgErrorPrice = 'Preço do produto é obrigatório!'
 
         try {
             const scheme = Yup.object().shape({
                 name: Yup.string(msgErrorName).required(msgErrorName),
-                quantity: Yup.number(msgErrorQuanti).required(msgErrorQuanti),
+                description: Yup.string().optional(), // Description is now an optional field
                 price: Yup.string(msgErrorPrice).required(msgErrorPrice),
             })
 
@@ -69,7 +68,7 @@ const EditProduct = ({ onClose, initialValue, submitEdit }) => {
 
                     <Form onSubmit={handleSubmit} initialData={initialValue} style={{ width: '90%' }} ref={formRef}>
                         <InputText name="name" label="Nome" />
-                        <InputText name="quantity" label="Quantidade" keyboardType="numeric" type="number" />
+                        <InputText name="description" label="Descrição" />
                         <InputText name="price" label="Preço"  keyboardType="numeric" type="number"/>
                     </Form>
 

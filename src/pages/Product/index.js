@@ -6,7 +6,7 @@ import { Background } from '../../utils/Style';
 import FloatingButton, { Icons } from '../../components/FloatingButton';
 import FlatListProducts from './FlatListProducts';
 import NewProduct from './NewProduct';
-import { createProduct, updateProduct, deleteProduct } from '../../database/repository';
+import { saveProduct, deleteProduct, getAllProducts } from '../../database';
 import { AuthContext } from '../../contexts/auth';
 import EditProduct from './EditProduct';
 
@@ -16,13 +16,31 @@ const Product = () => {
     const [modalEditVisibility,setModalEditVisibility] = useState(false);
     const [productEdit,setProductEdit] = useState({});
     const { loading, setLoading, theme} = useContext(AuthContext);
- 
-    async function addNewProduct(product) {
+    const [products, setProducts] = useState([]); // State to hold products
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
+
+    // Function to fetch products from the local database
+    async function fetchProducts() {
+      setLoading(true);
+      try {
+        const allProducts = await getAllProducts();
+        setProducts(allProducts);
+      } catch (err) {
+        console.log(err);
+        alert("Error fetching products");
+      } finally {
+        setLoading(false);
+      }
+    }    async function addNewProduct(product) {
         setLoading(true);
         try {
-            await createProduct({ name: product.name, price: parseFloat(product.price) });
+            await saveProduct({ name: product.name, description: product.description, price: parseFloat(product.price) });
             alert('Produto cadastrado!');
             setModalNewVisibility(false);
+            fetchProducts(); // Re-fetch products to update the list
         } catch (error) {
             alert('Erro ao cadastrar Produto!');
             console.log(error);
@@ -34,8 +52,10 @@ const Product = () => {
     async function handlerEditProduct(product) {
         setLoading(true);
         try {
-            await updateProduct({ productId: product.id, name: product.name, price: parseFloat(product.price) });
+            await saveProduct({ _id: product.id, name: product.name, description: product.description, price: parseFloat(product.price) });
+            alert('Produto alterado!'); // Added alert for clarity
             setModalEditVisibility(false);
+            fetchProducts(); // Re-fetch products to update the list
         } catch (error) {
             Alert.alert('Ops...','Erro ao Alterar Produto!');
             console.log(error);
@@ -49,6 +69,7 @@ const Product = () => {
         try {
             await deleteProduct(product.id);
             Alert.alert('Produto excluido!','');
+            fetchProducts(); // Re-fetch products to update the list
         } catch (error) {
             Alert.alert('Ops...','Erro ao deletar Produto!');
             console.log(error);
@@ -68,6 +89,7 @@ const Product = () => {
             </HeaderList>
             <Container>
                 <FlatListProducts
+                    products={products} // Pass the products list
                     openEdit={setModalEditVisibility} 
                     itemEdit={setProductEdit} 
                     handlerDelete={handlerDeleteProduct} />

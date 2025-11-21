@@ -12,19 +12,38 @@ import ModalClientSelector from './ModalClientSelector';
 import MyButton from '../../components/MyButton';
 import * as Yup from 'yup';
 import { AuthContext } from '../../contexts/auth';
-import { createOrder } from '../../database/repository';
+import { createOrder, getAllProducts } from '../../database';
+import { Platform } from 'react-native';
 
 const NewRequest = ({ onClose }) => {
     const formRef = useRef(null);
-    const [products, setProducts] = useState([]);
+    const [products, setProducts] = useState([]); // This state holds selected products with quantity
+    const [allProducts, setAllProducts] = useState([]); // This state holds all products from DB
     const [dataPikcerStatus, setDatePickerStatus] = useState(false);
     const [clientPickerStatus, setClientPickerStatus] = useState(false);
     const [clientSelected, setClientSelected] = useState(null);
     const [date, setDate] = useState(new Date());
     const [dateformat, setDateformat] = useState(format(new Date(), 'dd/MM/yyyy'));
     const [total, setTotal] = useState(0);
-    const { theme } = useContext(AuthContext);
-    
+    const { theme, setLoading } = useContext(AuthContext); // Destructure setLoading from AuthContext
+
+    useEffect(() => {
+        // Fetch all products on component mount
+        async function fetchAllProducts() {
+            setLoading(true);
+            try {
+                const fetchedProducts = await getAllProducts();
+                setAllProducts(fetchedProducts);
+            } catch (error) {
+                console.error("Error fetching all products:", error);
+                Alert.alert("Erro", "Não foi possível carregar os produtos.");
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchAllProducts();
+    }, []);
+
     useEffect(() => {
         if (products.length > 0) {
             let _aux = 0;
@@ -50,14 +69,19 @@ const NewRequest = ({ onClose }) => {
     }
 
     async function handleSubmitForm() {
-        const orderProducts = products
+        // Filter products with quantity > 0 and map to the format expected by createOrder
+        const orderProductsForDB = products
             .filter((item) => item.quantity > 0)
-            .map(p => ({ id: p.id, quantity: p.quantity }));
+            .map(p => ({
+                productId: p._id,
+                quantity: p.quantity,
+                unitPrice: p.price // Assuming product price is available in the products state
+            }));
 
         const data = {
             client: clientSelected,
             date: dateformat,
-            products: orderProducts,
+            products: orderProductsForDB, // Use the new format for DB
             total: total
         }
 
@@ -70,7 +94,11 @@ const NewRequest = ({ onClose }) => {
 
             await scheme.validate(data, { abortEarly: false });
             Alert.alert("Confirmar Pedido?",
-                data.products.map(item => '\n' + item.name + ' ' + item.quantity) + '\n' + 'Total: ' + total,
+                data.products.map(item => {
+                    // Find the original product name from the 'products' state for the alert message
+                    const originalProduct = products.find(p => p._id === item.productId);
+                    return '\n' + (originalProduct ? originalProduct.name : 'Produto') + ' ' + item.quantity + ' x ' + item.unitPrice;
+                }).join('') + '\n' + 'Total: ' + total.toFixed(2),
                 [{
                     text: 'cancelar',
                     onPress: () => console.log('cancelado'),
@@ -81,11 +109,11 @@ const NewRequest = ({ onClose }) => {
                     onPress: async () => {
                         try {
                             await createOrder({
-                                clientId: data.client.id,
+                                clientId: data.client._id,
                                 status: 'open',
                                 products: data.products
                             });
-                            Alert.alert("Pedidio realizado!", '',
+                            Alert.alert("Pedido realizado!", '',
                                 [{
                                     text: 'ok',
                                     onPress: () => onClose(),
@@ -158,7 +186,7 @@ const NewRequest = ({ onClose }) => {
                             </TouchableOpacity>
 
                         </ContainerClient>
-                        <FlatListProducts list={products} setList={setProducts} _total={total} _setTotal={setTotal} />
+                        <FlatListProducts products={allProducts} list={products} setList={setProducts} _total={total} _setTotal={setTotal} />
                         <ButtonView>
                             <MyButton title={'Confirmar'} onClick={() => formRef.current.submitForm()} />
                         </ButtonView>
