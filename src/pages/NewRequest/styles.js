@@ -16,13 +16,15 @@ export const Container = styled.View`
 flex: 1;
 `;
 export const ButtonView = styled.View`
-align-items: center;
+flex: 1;
+align-items: flex-end;
 
 `;
 export const ContainerClient = styled.View`
 flex-direction: row;
 justify-content:space-between;
 margin: 5px 10px;
+gap: 10px;
 `;
 export const Title = styled.Text`
 color: ${props => props.theme.backgroundColor};

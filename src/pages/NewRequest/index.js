@@ -15,7 +15,7 @@ import { AuthContext } from '../../contexts/auth';
 import { createOrder, getAllProducts } from '../../database';
 import { Platform } from 'react-native';
 
-const NewRequest = ({ onClose }) => {
+const NewRequest = ({ onClose, onCreated }) => {
     const formRef = useRef(null);
     const [products, setProducts] = useState([]); // This state holds selected products with quantity
     const [allProducts, setAllProducts] = useState([]); // This state holds all products from DB
@@ -113,6 +113,9 @@ const NewRequest = ({ onClose }) => {
                                 status: 'open',
                                 products: data.products
                             });
+                            if (typeof onCreated === 'function') {
+                                onCreated();
+                            }
                             Alert.alert("Pedido realizado!", '',
                                 [{
                                     text: 'ok',
@@ -164,18 +167,24 @@ const NewRequest = ({ onClose }) => {
                             {Icons('arrow-back', 30, theme.backgroundColor)}
                         </TouchableOpacity>
                         <Title>{total > 0 ? 'Total: ' + total.toFixed(2) : 'Novo Pedido'}</Title>
+                        <ButtonView>
+                            <TouchableOpacity onPress={() => formRef.current.submitForm()} >
+                                <Title>Ok</Title>
+                            </TouchableOpacity>
+                        </ButtonView>
                     </Header>
+
                 </HeaderBackground>
 
                 <Container>
                     <Form style={{ flex: 1 }} ref={formRef} onSubmit={handleSubmitForm}>
                         <ContainerClient>
-                            <TouchableOpacity onPress={() => setClientPickerStatus(true)}>
+                            <TouchableOpacity style={{ flex: 1 }} onPress={() => setClientPickerStatus(true)}>
                                 <InputText
                                     name='client'
                                     label='Cliente' editable={false}
                                     value={clientSelected ? clientSelected.name : 'Selecione um Cliente'}
-                                    style={{ color: theme.textColor, height: 40, width: 150 }}
+                                    style={{ color: theme.textColor, height: 40 }}
                                 />
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setDatePickerStatus(true)}>
@@ -184,16 +193,9 @@ const NewRequest = ({ onClose }) => {
                                     defaultValue={dateformat || 'dia/mes/ano'}
                                     style={{ color: theme.textColor, height: 40, width: 100 }} />
                             </TouchableOpacity>
-
                         </ContainerClient>
                         <FlatListProducts products={allProducts} list={products} setList={setProducts} _total={total} _setTotal={setTotal} />
-                        <ButtonView>
-                            <MyButton title={'Confirmar'} onClick={() => formRef.current.submitForm()} />
-                        </ButtonView>
                     </Form>
-
-
-
                 </Container>
 
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useCallback } from 'react';
 import { View, Text, KeyboardAvoidingView, FlatList } from 'react-native';
 import FloatingButton, { Icons } from '../../../components/FloatingButton';
 import { AuthContext } from '../../../contexts/auth';
@@ -6,27 +6,32 @@ import { Background } from '../../../utils/Style';
 import NewRequest from '../../NewRequest';
 import Card from './Card';
 import { getAllOrders } from '../../../database';
+import { useFocusEffect } from '@react-navigation/native';
 
 const LastOrders = () => {
   const [NewRequestStatus, setNewRequestStatus] = useState(false);
   const { user } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
 
-  useEffect(() => {
-    async function fetchOrders() {
-      try {
-        const allOrders = await getAllOrders();
-        setOrders(allOrders);
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-      }
+  const fetchOrders = useCallback(async () => {
+    try {
+      const allOrders = await getAllOrders();
+      setOrders(allOrders);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
     }
-    fetchOrders();
   }, []);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   if (NewRequestStatus) {
     return (
-      <NewRequest onClose={() => setNewRequestStatus(false)} />
+      <NewRequest
+        onClose={() => setNewRequestStatus(false)}
+        onCreated={fetchOrders}
+      />
     )
 
   }

@@ -2,7 +2,7 @@ import {
     ModalContainer,
     HeaderModal, ModalBackgroud,
 } from '../../../utils/Style';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { TouchableOpacity, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { Form } from '@unform/mobile';
@@ -25,7 +25,7 @@ const EditProduct = ({ onClose, initialValue, submitEdit }) => {
             })
 
             await scheme.validate(data, { abortEarly: false });
-            let newData = {...{id: initialValue.id}, ...data}
+            let newData = { ...{ id: initialValue.id }, ...data }
             submitEdit(newData);
         } catch (error) {
             const valitadeErros = {}
@@ -41,6 +41,16 @@ const EditProduct = ({ onClose, initialValue, submitEdit }) => {
 
 
     }
+
+    useEffect(() => {
+        if (initialValue) {
+            formRef.current.setData({
+                name: initialValue.name || '',
+                description: initialValue.description || '',
+                price: initialValue.price.toString() || '',
+            });
+        }
+    }, [initialValue]);
 
     return (
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -69,10 +79,10 @@ const EditProduct = ({ onClose, initialValue, submitEdit }) => {
                     <Form onSubmit={handleSubmit} initialData={initialValue} style={{ width: '90%' }} ref={formRef}>
                         <InputText name="name" label="Nome" />
                         <InputText name="description" label="Descrição" />
-                        <InputText name="price" label="Preço"  keyboardType="numeric" type="number"/>
+                        <InputText name="price" label="Preço" keyboardType="numeric" type="number" />
                     </Form>
 
-                    
+
 
                 </ModalContainer>
             </ModalBackgroud>
