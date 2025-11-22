@@ -10,7 +10,6 @@ import SignInScreen from '../SignIn/SignInScreen';
 import SignUpScreen from '../SignUp/SignUpScreen';
 import { synchronize } from '../../services/sync';
 import * as FileSystem from 'expo-file-system';
-import { shareAsync } from 'expo-sharing';
 
 const containerStyle = { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 };
 const titleStyle = { fontSize: 22, fontWeight: 'bold', marginBottom: 10 };
@@ -54,8 +53,7 @@ const AccountScreen = () => {
         setIsBackingUp(true);
         try {
             const dbPath = `${FileSystem.documentDirectory}SQLite/meunegocio.db`;
-            const backupPath = `${FileSystem.cacheDirectory}meunegocio-backup-${Date.now()}.db`;
-
+            const folder = `${FileSystem.documentDirectory}backups/`;
             const dbExists = await FileSystem.getInfoAsync(dbPath);
             if (!dbExists.exists) {
                 Alert.alert('Erro', 'Banco local não encontrado para backup.');
@@ -63,9 +61,13 @@ const AccountScreen = () => {
                 return;
             }
 
+            const dirInfo = await FileSystem.getInfoAsync(folder);
+            if (!dirInfo.exists) {
+                await FileSystem.makeDirectoryAsync(folder, { intermediates: true });
+            }
+            const backupPath = `${folder}meunegocio-backup-${Date.now()}.db`;
             await FileSystem.copyAsync({ from: dbPath, to: backupPath });
-
-            await shareAsync(backupPath, { mimeType: 'application/octet-stream', dialogTitle: 'Compartilhar backup local' });
+            Alert.alert('Backup salvo', `Arquivo salvo em:\n${backupPath}`);
         } catch (err) {
             console.error(err);
             Alert.alert('Erro', 'Não foi possível gerar o backup local.');
