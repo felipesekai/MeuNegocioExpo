@@ -11,21 +11,24 @@ const ProductList = ({ products, setList, list, _total, _setTotal }) => { // 'pr
 
 
     useEffect(() => {
-        // When the parent passes new products, initialize the local list with quantity 0
+        // Merge incoming catalog with existing quantities (keeps items já selecionados ou do pedido em edição)
         if (products && products.length > 0) {
-            const productListWithQuantity = products.map(product => ({
-                _id: product._id,
-                name: product.name,
-                price: product.price,
-                quantity: 0,
-                // Add other product properties if needed for display
-                description: product.description,
-            }));
-            setList(productListWithQuantity);
+            setList((prev) => {
+                return products.map((product) => {
+                    const existing = prev?.find((p) => p._id === product._id);
+                    return {
+                        _id: product._id,
+                        name: product.name,
+                        price: product.price,
+                        quantity: existing?.quantity || 0,
+                        description: product.description,
+                    };
+                });
+            });
         } else {
-            setList([]); // Clear list if no products are passed
+            setList([]);
         }
-    }, [products]); // Effect runs when products prop changes
+    }, [products, setList]);
 
 
 

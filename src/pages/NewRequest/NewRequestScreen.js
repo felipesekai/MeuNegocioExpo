@@ -53,14 +53,13 @@ const NewRequestScreen = ({ onClose, onCreated, initialOrder }) => {
   }, [initialOrder]);
 
   useEffect(() => {
-    if (initialOrder?.items && allProducts.length) {
-      const mapped = initialOrder.items.map((item) => {
-        const product =
-          allProducts.find((p) => p._id === item.productId) || { _id: item.productId, name: 'Produto', price: item.unitPrice };
+    if (initialOrder && allProducts.length) {
+      const mapped = allProducts.map((product) => {
+        const existing = initialOrder.items?.find((item) => item.productId === product._id);
         return {
           ...product,
-          quantity: item.quantity,
-          price: item.unitPrice ?? product.price,
+          quantity: existing?.quantity || 0,
+          price: existing?.unitPrice ?? product.price,
         };
       });
       setProducts(mapped);

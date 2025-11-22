@@ -9,12 +9,14 @@ import LoaderOverlay from '../../../components/LoaderOverlay';
 import ListEmpty from '../../../components/ListEmpty';
 import { confirmDialog } from '../../../utils/dialogs';
 import { useClients } from '../../../hooks/useClients';
+import OrderDetailsModal from './OrderDetailsModal';
 
 const LastPaymentsScreen = () => {
   const { user } = useContext(AuthContext);
   const { orders, refresh, loading, getOrderDetails, updateStatus } = useOrders();
   const { clients, refresh: refreshClients } = useClients();
   const [search, setSearch] = useState('');
+  const [viewingOrder, setViewingOrder] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -41,8 +43,7 @@ const LastPaymentsScreen = () => {
         Alert.alert('Pedido não encontrado');
         return;
       }
-      // Payments screen is view-only; could navigate to editor if needed
-      Alert.alert('Pedido pago', `Cliente: ${fullOrder.client?.name || ''}\nTotal: ${order.totalAmount.toFixed(2)}`);
+      setViewingOrder(fullOrder);
     } catch (err) {
       Alert.alert('Erro', 'Não foi possível abrir o pedido.');
     }
@@ -95,6 +96,22 @@ const LastPaymentsScreen = () => {
         />
       </View>
       <LoaderOverlay visible={loading} />
+      <OrderDetailsModal
+        visible={Boolean(viewingOrder)}
+        order={viewingOrder}
+        onClose={() => setViewingOrder(null)}
+        onEdit={() => {
+          // Pedidos pagos: apenas visualizar; se for editar, podemos marcar como não pago antes.
+          confirmDialog({
+            title: 'Editar pedido pago?',
+            message: 'O pedido será marcado como não pago para edição.',
+            onConfirm: async () => {
+              await updateStatus(viewingOrder._id, 'pending');
+              setViewingOrder(null);
+            },
+          });
+        }}
+      />
     </Background>);
 };
 

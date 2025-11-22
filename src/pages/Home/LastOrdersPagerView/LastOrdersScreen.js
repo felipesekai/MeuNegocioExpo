@@ -11,10 +11,12 @@ import LoaderOverlay from '../../../components/LoaderOverlay';
 import ListEmpty from '../../../components/ListEmpty';
 import { confirmDialog } from '../../../utils/dialogs';
 import { useClients } from '../../../hooks/useClients';
+import OrderDetailsModal from './OrderDetailsModal';
 
 const LastOrdersScreen = () => {
   const [NewRequestStatus, setNewRequestStatus] = useState(false);
   const [editingOrder, setEditingOrder] = useState(null);
+  const [viewingOrder, setViewingOrder] = useState(null);
   const [search, setSearch] = useState('');
   const { user } = useContext(AuthContext);
   const { orders, refresh, loading, getOrderDetails, updateStatus } = useOrders();
@@ -38,7 +40,7 @@ const LastOrdersScreen = () => {
     });
   }, [unpaidOrders, clients, search]);
 
-  const openOrder = useCallback(
+  const openOrderDetails = useCallback(
     async (order) => {
       try {
         const fullOrder = await getOrderDetails(order._id);
@@ -46,8 +48,7 @@ const LastOrdersScreen = () => {
           Alert.alert('Pedido não encontrado');
           return;
         }
-        setEditingOrder(fullOrder);
-        setNewRequestStatus(true);
+        setViewingOrder(fullOrder);
       } catch (err) {
         Alert.alert('Erro', 'Não foi possível abrir o pedido.');
       }
@@ -69,8 +70,8 @@ const LastOrdersScreen = () => {
   );
 
   const renderOrder = useCallback(
-    ({ item }) => <Card data={item} onPress={() => openOrder(item)} onLongPress={() => togglePaid(item)} />,
-    [openOrder, togglePaid],
+    ({ item }) => <Card data={item} onPress={() => openOrderDetails(item)} onLongPress={() => togglePaid(item)} />,
+    [openOrderDetails, togglePaid],
   );
 
   const keyExtractor = useCallback((item) => item._id, []);
@@ -125,6 +126,16 @@ const LastOrdersScreen = () => {
         accessibilityLabel="Criar pedido"
       />
       <LoaderOverlay visible={loading} />
+      <OrderDetailsModal
+        visible={Boolean(viewingOrder)}
+        order={viewingOrder}
+        onClose={() => setViewingOrder(null)}
+        onEdit={() => {
+          setEditingOrder(viewingOrder);
+          setViewingOrder(null);
+          setNewRequestStatus(true);
+        }}
+      />
     </Background>);
 };
 
