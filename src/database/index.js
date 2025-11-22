@@ -211,6 +211,36 @@ export async function getOrderProductsByOrderId(orderId) {
   return rows.map(mapOrderProductRow);
 }
 
+export async function updateOrderWithProducts({ _id, clientId, status, products, orderDate }) {
+  if (!_id) throw new Error('Order id is required to update');
+  const now = Date.now();
+  const orderDateMs = toMillis(orderDate, now);
+  let calculatedTotal = 0;
+
+  await runInTransaction(async (tx) => {
+    await tx.runAsync(`DELETE FROM order_products WHERE orderId = ?`, [_id]);
+
+    for (const productItem of products) {
+      const orderProductId = generateId();
+      const qty = Number(productItem.quantity) || 0;
+      const unitPrice = Number(productItem.unitPrice) || 0;
+      calculatedTotal += qty * unitPrice;
+
+      await tx.runAsync(
+        `INSERT INTO order_products (_id, orderId, productId, quantity, unitPrice, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [orderProductId, _id, productItem.productId, qty, unitPrice, now, now],
+      );
+    }
+
+    await tx.runAsync(
+      `UPDATE orders SET clientId = ?, orderDate = ?, totalAmount = ?, status = ?, updatedAt = ? WHERE _id = ?`,
+      [clientId, orderDateMs, calculatedTotal, status || 'pending', now, _id],
+    );
+  });
+
+  return getOrderById(_id);
+}
+
 export async function getClientsUpdatedSince(timestamp) {
   const rows = await queryAll(`SELECT * FROM clients WHERE updatedAt >= ?`, [timestamp]);
   return rows.map(mapClientRow);

@@ -25,9 +25,9 @@ export const ModalBackgroud = styled.KeyboardAvoidingView`
 width: 100%;
 position: absolute;
 bottom: 0;
-background-color: #fff;
-border-top-left-radius: 10px;
-border-top-right-radius: 10px;
+background-color: ${props => props.theme.surfaceColor || '#fff'};
+border-top-left-radius: ${props => props.theme.radius || 10}px;
+border-top-right-radius: ${props => props.theme.radius || 10}px;
 elevation: 5;
 box-shadow: 3px 0 3px ${Platform.OS === 'ios' ? 'rgba(0, 0, 0, 0.28)' : "#000"} ;
 `;
@@ -45,8 +45,10 @@ padding: 10px;
 width: 100%;
 height:50px;
 border-width: 2px;
-border-radius: 7px;
-border-color: ${props => props.erro ? 'red' : props.theme.primaryColor};
+ border-radius: ${props => props.theme.radius || 8}px;
+ border-color: ${props => props.erro ? props.theme.danger || 'red' : props.theme.borderColor || props.theme.primaryColor};
+ color: ${props => props.theme.textColor};
+ background-color: ${props => props.theme.surfaceColor || '#fff'};
 `;
 
 export const ViewInput = styled.View`

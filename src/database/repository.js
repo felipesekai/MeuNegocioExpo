@@ -23,4 +23,7 @@ export const orderRepository = {
   saveRecord: repo.saveOrderRecord,
   remove: repo.deleteOrder,
   updatedSince: repo.getOrdersUpdatedSince,
+  updateWithProducts: repo.updateOrderWithProducts,
+  getItems: repo.getOrderProductsByOrderId,
+  updateStatus: repo.updateOrderStatus,
 };

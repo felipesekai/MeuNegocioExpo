@@ -10,7 +10,7 @@ export const Card = styled.TouchableOpacity`
     width: 100%;
     background-color: ${props => props.theme.cardColor};
     align-items: center;
-    border-radius: 0.5px;
+    border-radius: ${props => props.theme.radius || 8}px;
     border-top-width: 1px;
     border-color: ${props => props.theme.primaryColor};
 `;

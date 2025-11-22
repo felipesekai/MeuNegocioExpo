@@ -1,9 +1,7 @@
 import React, { useState, useContext, useCallback, useMemo } from 'react';
 import { View, FlatList, Alert, TextInput } from 'react-native';
-import FloatingButton, { Icons } from '../../../components/FloatingButton';
 import { AuthContext } from '../../../contexts/auth';
 import { Background } from '../../../utils/Style';
-import NewRequestScreen from '../../NewRequest/NewRequestScreen';
 import Card from './Card';
 import { useOrders } from '../../../hooks/useOrders';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,13 +10,11 @@ import ListEmpty from '../../../components/ListEmpty';
 import { confirmDialog } from '../../../utils/dialogs';
 import { useClients } from '../../../hooks/useClients';
 
-const LastOrdersScreen = () => {
-  const [NewRequestStatus, setNewRequestStatus] = useState(false);
-  const [editingOrder, setEditingOrder] = useState(null);
-  const [search, setSearch] = useState('');
+const LastPaymentsScreen = () => {
   const { user } = useContext(AuthContext);
   const { orders, refresh, loading, getOrderDetails, updateStatus } = useOrders();
   const { clients, refresh: refreshClients } = useClients();
+  const [search, setSearch] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -27,41 +23,38 @@ const LastOrdersScreen = () => {
     }, [refresh, refreshClients]),
   );
 
-  const unpaidOrders = useMemo(() => orders.filter((o) => o.status !== 'paid'), [orders]);
+  const paidOrders = useMemo(() => orders.filter((o) => o.status === 'paid'), [orders]);
   const filteredOrders = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return unpaidOrders;
-    return unpaidOrders.filter((order) => {
+    if (!term) return paidOrders;
+    return paidOrders.filter((order) => {
       const client = clients.find((c) => c._id === order.clientId);
       const name = client?.name?.toLowerCase() || '';
       return name.includes(term);
     });
-  }, [unpaidOrders, clients, search]);
+  }, [paidOrders, clients, search]);
 
-  const openOrder = useCallback(
-    async (order) => {
-      try {
-        const fullOrder = await getOrderDetails(order._id);
-        if (!fullOrder) {
-          Alert.alert('Pedido não encontrado');
-          return;
-        }
-        setEditingOrder(fullOrder);
-        setNewRequestStatus(true);
-      } catch (err) {
-        Alert.alert('Erro', 'Não foi possível abrir o pedido.');
+  const openOrder = useCallback(async (order) => {
+    try {
+      const fullOrder = await getOrderDetails(order._id);
+      if (!fullOrder) {
+        Alert.alert('Pedido não encontrado');
+        return;
       }
-    },
-    [getOrderDetails],
-  );
+      // Payments screen is view-only; could navigate to editor if needed
+      Alert.alert('Pedido pago', `Cliente: ${fullOrder.client?.name || ''}\nTotal: ${order.totalAmount.toFixed(2)}`);
+    } catch (err) {
+      Alert.alert('Erro', 'Não foi possível abrir o pedido.');
+    }
+  }, [getOrderDetails]);
 
-  const togglePaid = useCallback(
+  const markAsUnpaid = useCallback(
     (order) => {
       confirmDialog({
-        title: order.status === 'paid' ? 'Marcar como não pago?' : 'Marcar como pago?',
-        message: order.status === 'paid' ? 'Este pedido voltará para a lista de pendentes.' : 'Este pedido será marcado como pago.',
+        title: 'Marcar como não pago?',
+        message: 'Este pedido voltará para a lista de pendentes.',
         onConfirm: async () => {
-          await updateStatus(order._id, order.status === 'paid' ? 'pending' : 'paid');
+          await updateStatus(order._id, 'pending');
         },
       });
     },
@@ -69,25 +62,11 @@ const LastOrdersScreen = () => {
   );
 
   const renderOrder = useCallback(
-    ({ item }) => <Card data={item} onPress={() => openOrder(item)} onLongPress={() => togglePaid(item)} />,
-    [openOrder, togglePaid],
+    ({ item }) => <Card data={item} onPress={() => openOrder(item)} onLongPress={() => markAsUnpaid(item)} />,
+    [openOrder, markAsUnpaid],
   );
 
   const keyExtractor = useCallback((item) => item._id, []);
-
-  if (NewRequestStatus) {
-    return (
-      <NewRequestScreen
-        onClose={() => {
-          setNewRequestStatus(false);
-          setEditingOrder(null);
-          refresh({ force: true });
-        }}
-        onCreated={refresh}
-        initialOrder={editingOrder}
-      />
-    );
-  }
 
   return (
     <Background>
@@ -112,20 +91,11 @@ const LastOrdersScreen = () => {
           data={filteredOrders}
           keyExtractor={keyExtractor}
           renderItem={renderOrder}
-          ListEmptyComponent={<ListEmpty message="Nenhum pedido pendente." />}
+          ListEmptyComponent={<ListEmpty message="Nenhum pedido pago." />}
         />
-
       </View>
-      <FloatingButton
-        icon={Icons('add', 30, 'white')}
-        onClick={() => {
-          setEditingOrder(null);
-          setNewRequestStatus(true);
-        }}
-        accessibilityLabel="Criar pedido"
-      />
       <LoaderOverlay visible={loading} />
     </Background>);
 };
 
-export default LastOrdersScreen;
+export default LastPaymentsScreen;

@@ -2,14 +2,10 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Card,
   Container,
-  InputQuantity,
   ItemName,
   ItemPrice,
-  Counter,
-  CounterButton,
-  CounterText,
-  CounterValue,
 } from './styles';
+import Counter from '../../../../components/Counter';
 
 const CardItens = ({ item, sumTotal }) => {
   const [quantity, setQuantity] = useState(item.quantity || 0);
@@ -38,17 +34,7 @@ const CardItens = ({ item, sumTotal }) => {
         <ItemName>{item && item.name}</ItemName>
         <ItemPrice>{item && parseFloat(item.price).toFixed(2) + ' $'}</ItemPrice>
       </Card>
-      <InputQuantity>
-        <Counter>
-          <CounterButton onPress={decrement} accessibilityLabel="Diminuir quantidade">
-            <CounterText>-</CounterText>
-          </CounterButton>
-          <CounterValue>{quantity}</CounterValue>
-          <CounterButton onPress={increment} accessibilityLabel="Aumentar quantidade">
-            <CounterText>+</CounterText>
-          </CounterButton>
-        </Counter>
-      </InputQuantity>
+      <Counter value={quantity} onChange={setQuantity} min={0} accessibilityLabel="Quantidade" />
     </Container>
   );
 };

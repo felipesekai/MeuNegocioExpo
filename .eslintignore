@@ -1,0 +1,8 @@
+node_modules
+dist
+.expo
+.expo-shared
+coverage
+android
+ios
+*.config.js

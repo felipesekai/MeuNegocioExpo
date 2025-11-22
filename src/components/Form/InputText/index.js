@@ -3,7 +3,7 @@ import { Text, } from 'react-native';
 import { useField } from '@unform/core';
 import { ViewInput, Input, TitleInputs } from '../../../utils/Style';
 
-const InputText = ({ name, label, onChangeText, ...rest }) => {
+const InputText = ({ name, label, onChangeText, accessibilityLabel, ...rest }) => {
     const inputRef = useRef(null);
 
     const { fieldName, registerField, defaultValue, error } = useField(name);
@@ -60,8 +60,9 @@ const handleChangeText = useCallback(
     return (
             
             <ViewInput style={{width: '100%'}}>
-            {label&& <TitleInputs>{label}</TitleInputs>}
+            {label&& <TitleInputs accessibilityRole="text">{label}</TitleInputs>}
             <Input 
+            accessibilityLabel={accessibilityLabel || label || name}
             erro={colorError}
             ref={inputRef}
             onChangeText={handleChangeText}

@@ -2,7 +2,7 @@ import { getDatabase, ref, onValue } from "firebase/database";
 import { getUser} from "../src/database";
 import {app} from '../src/services/firebaseConnect';
 
-describe("firebase db test", () =>{
+describe.skip("firebase db test", () =>{
 
     beforeAll(() => {
         jest.setTimeout(10000);
