@@ -13,6 +13,7 @@ export const productRepository = {
   getById: repo.getProductById,
   save: repo.saveProduct,
   remove: repo.deleteProduct,
+  addStock: repo.incrementProductStock,
   updatedSince: repo.getProductsUpdatedSince,
 };
 

@@ -1,5 +1,5 @@
 import React, { useState, useContext, useCallback } from 'react';
-import { Modal, Alert } from 'react-native';
+import { Modal, Alert, TextInput, View, Text, TouchableOpacity } from 'react-native';
 import Header from '../../components/Header';
 import { Container, HeaderList, TextHL } from './styles';
 import { Background } from '../../utils/Style';
@@ -18,7 +18,10 @@ const ProductScreen = () => {
   const [modalEditVisibility, setModalEditVisibility] = useState(false);
   const [productEdit, setProductEdit] = useState({});
   const { setLoading } = useContext(AuthContext);
-  const { products, refresh, createProduct, updateProduct, deleteProduct, loading, mutating } = useProducts();
+  const { products, refresh, createProduct, updateProduct, deleteProduct, addStock, loading, mutating } = useProducts();
+  const [stockModalVisible, setStockModalVisible] = useState(false);
+  const [stockTarget, setStockTarget] = useState(null);
+  const [stockAmount, setStockAmount] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -85,7 +88,17 @@ const ProductScreen = () => {
         <TextHL>Preco</TextHL>
       </HeaderList>
       <Container>
-        <FlatListProducts products={products} openEdit={setModalEditVisibility} itemEdit={setProductEdit} handlerDelete={handlerDeleteProduct} />
+        <FlatListProducts
+          products={products}
+          openEdit={setModalEditVisibility}
+          itemEdit={setProductEdit}
+          handlerDelete={handlerDeleteProduct}
+          handlerStock={(item) => {
+            setStockTarget(item);
+            setStockAmount('');
+            setStockModalVisible(true);
+          }}
+        />
       </Container>
 
       <FloatingButton onClick={() => setModalNewVisibility(true)} icon={Icons('addchart', 30, 'white')} accessibilityLabel="Adicionar produto" />
@@ -98,6 +111,41 @@ const ProductScreen = () => {
       {modalEditVisibility && (
         <Modal transparent={true} animationType="slide" visible={modalEditVisibility} onRequestClose={() => setModalEditVisibility(false)}>
           <EditProduct onClose={(bol) => setModalEditVisibility(bol)} initialValue={productEdit} submitEdit={handlerEditProduct} />
+        </Modal>
+      )}
+      {stockModalVisible && (
+        <Modal transparent animationType="fade" visible={stockModalVisible} onRequestClose={() => setStockModalVisible(false)}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' }}>
+            <View style={{ backgroundColor: '#fff', padding: 20, borderRadius: 12, width: '80%' }}>
+              <Text style={{ fontWeight: '700', fontSize: 16, marginBottom: 8 }}>Adicionar ao estoque</Text>
+              <Text style={{ marginBottom: 12 }}>{stockTarget?.name}</Text>
+              <TextInput
+                placeholder="Quantidade"
+                keyboardType="numeric"
+                value={stockAmount}
+                onChangeText={setStockAmount}
+                style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, marginBottom: 12 }}
+              />
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <TouchableOpacity onPress={() => setStockModalVisible(false)} style={{ marginRight: 12 }}>
+                  <Text>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={async () => {
+                    const delta = Number(stockAmount);
+                    if (Number.isNaN(delta)) {
+                      alert('Informe uma quantidade válida');
+                      return;
+                    }
+                    await addStock(stockTarget._id, delta);
+                    setStockModalVisible(false);
+                  }}
+                >
+                  <Text style={{ color: '#007aff', fontWeight: '700' }}>Adicionar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         </Modal>
       )}
       <LoaderOverlay visible={loading || mutating} />

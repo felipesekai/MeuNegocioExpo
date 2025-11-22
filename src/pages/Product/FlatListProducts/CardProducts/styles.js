@@ -32,6 +32,15 @@ export const Textp = styled.Text`
     color: ${props => props.theme.textColor};
 `;
 
+export const Badge = styled.View`
+    min-width: 32px;
+    padding: 6px 8px;
+    border-radius: 10px;
+    background-color: ${props => props.theme.secondaryColor || props.theme.primaryColor};
+    align-items: center;
+    justify-content: center;
+`;
+
 const styles = StyleSheet.create({
     shadow: {
         elevation: 3,

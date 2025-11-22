@@ -69,6 +69,21 @@ export function useProducts() {
     [refresh],
   );
 
+  const addStock = useCallback(
+    async (productId, amount) => {
+      setError(null);
+      return withRequest(
+        async () => {
+          await productRepository.addStock(productId, amount);
+          cacheReady.current = false;
+          await refresh({ force: true });
+        },
+        { setLoading: setMutating, onError: (err) => setError(err) },
+      );
+    },
+    [refresh],
+  );
+
   useEffect(() => {
     refresh();
   }, [refresh]);
@@ -83,5 +98,6 @@ export function useProducts() {
     createProduct,
     updateProduct,
     deleteProduct,
+    addStock,
   };
 }

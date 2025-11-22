@@ -137,6 +137,15 @@ export async function getProductById(productId) {
   return row ? mapProductRow(row) : null;
 }
 
+export async function incrementProductStock(productId, amount) {
+  const product = await getProductById(productId);
+  if (!product) return null;
+  const now = Date.now();
+  const nextQty = Math.max(0, (Number(product.quantity) || 0) + (Number(amount) || 0));
+  await executeSql(`UPDATE products SET quantity = ?, updatedAt = ? WHERE _id = ?`, [nextQty, now, productId]);
+  return getProductById(productId);
+}
+
 export async function deleteProduct(productId) {
   await executeSql(`DELETE FROM products WHERE _id = ?`, [productId]);
 }
