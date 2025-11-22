@@ -14,6 +14,7 @@ import {
   getProductById,
   getOrderById,
 } from '../database';
+import { clientRepository, productRepository, orderRepository } from '../database/repository';
 
 const LAST_SYNCED_AT_KEY = 'last_synced_at';
 
@@ -28,10 +29,10 @@ async function pullChanges(userId, lastSyncedAt) {
   const remoteOrders = (await firebase.getFBUpdatedOrders(userId, since)) || {};
 
   for (const [clientId, remoteClient] of Object.entries(remoteClients)) {
-    const localClient = await getClientById(clientId);
+    const localClient = await clientRepository.getById(clientId);
 
     if (remoteClient._status === 'deleted') {
-      if (localClient) await deleteClient(clientId);
+      if (localClient) await clientRepository.remove(clientId);
       continue;
     }
 
@@ -39,7 +40,7 @@ async function pullChanges(userId, lastSyncedAt) {
     const localUpdatedAt = localClient?.updatedAt?.getTime?.() || 0;
 
     if (!localClient || localUpdatedAt < updatedAt.getTime()) {
-      await saveClient({
+      await clientRepository.save({
         _id: clientId,
         name: remoteClient.name || '',
         phone: remoteClient.phone || null,
@@ -52,10 +53,10 @@ async function pullChanges(userId, lastSyncedAt) {
   }
 
   for (const [productId, remoteProduct] of Object.entries(remoteProducts)) {
-    const localProduct = await getProductById(productId);
+    const localProduct = await productRepository.getById(productId);
 
     if (remoteProduct._status === 'deleted') {
-      if (localProduct) await deleteProduct(productId);
+      if (localProduct) await productRepository.remove(productId);
       continue;
     }
 
@@ -63,7 +64,7 @@ async function pullChanges(userId, lastSyncedAt) {
     const localUpdatedAt = localProduct?.updatedAt?.getTime?.() || 0;
 
     if (!localProduct || localUpdatedAt < updatedAt.getTime()) {
-      await saveProduct({
+      await productRepository.save({
         _id: productId,
         name: remoteProduct.name || '',
         description: remoteProduct.description || null,
@@ -78,10 +79,10 @@ async function pullChanges(userId, lastSyncedAt) {
     const clientIdentifier = remoteOrder.clientId || remoteOrder.client_id;
     if (!clientIdentifier) continue;
 
-    const localOrder = await getOrderById(orderId);
+    const localOrder = await orderRepository.getById(orderId);
 
     if (remoteOrder._status === 'deleted') {
-      if (localOrder) await deleteOrder(orderId);
+      if (localOrder) await orderRepository.remove(orderId);
       continue;
     }
 
@@ -89,7 +90,7 @@ async function pullChanges(userId, lastSyncedAt) {
     const localUpdatedAt = localOrder?.updatedAt?.getTime?.() || 0;
 
     if (!localOrder || localUpdatedAt < updatedAt.getTime()) {
-      await saveOrderRecord({
+      await orderRepository.saveRecord({
         _id: orderId,
         clientId: clientIdentifier,
         status: remoteOrder.status || localOrder?.status || 'pending',
@@ -129,17 +130,17 @@ async function pushChanges(userId, lastSyncedAt) {
   console.log('Pushing changes...');
   const sinceDate = new Date(lastSyncedAt || 0);
 
-  const updatedClients = await getClientsUpdatedSince(sinceDate.getTime());
+  const updatedClients = await clientRepository.updatedSince(sinceDate.getTime());
   for (const client of updatedClients) {
     await firebase.upsertClient(userId, serializeClient(client));
   }
 
-  const updatedProducts = await getProductsUpdatedSince(sinceDate.getTime());
+  const updatedProducts = await productRepository.updatedSince(sinceDate.getTime());
   for (const product of updatedProducts) {
     await firebase.upsertProduct(userId, serializeProduct(product));
   }
 
-  const updatedOrders = await getOrdersUpdatedSince(sinceDate.getTime());
+  const updatedOrders = await orderRepository.updatedSince(sinceDate.getTime());
   for (const order of updatedOrders) {
     await firebase.upsertOrder(userId, serializeOrder(order));
   }

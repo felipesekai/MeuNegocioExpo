@@ -1,5 +1,5 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { Modal, ActivityIndicator, } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { Modal } from 'react-native';
 import { Background } from '../../utils/Style';
 import Header from '../../components/Header';
 import { Container } from './styles';
@@ -7,36 +7,19 @@ import FloatingButton from '../../components/FloatingButton';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import FlatListClients from './FlatListClients';
 import { AuthContext } from '../../contexts/auth';
-import { saveClient, deleteClient, getAllClients } from '../../database';
+import { saveClient, deleteClient } from '../../database';
 import { useTheme } from 'styled-components';
 import EditClient from './EditClient';
 import NewClient from './NewClient';
+import { useClients } from '../../hooks/useClients';
 
-export default function Client() {
+export default function ClientScreen() {
   const theme = useTheme();
   const [modalVisibility, setModalVisibility] = useState(false);
   const [modalEditVisibility, setModalEditVisibility] = useState(false);
   const [userEdit, setUserEdit] = useState(null);
-  const { loading, setLoading } = useContext(AuthContext);
-  const [clients, setClients] = useState([]); // State to hold clients
-
-  useEffect(() => {
-    fetchClients();
-  }, []);
-
-  // Function to fetch clients from the local database
-  async function fetchClients() {
-    setLoading(true);
-    try {
-      const allClients = await getAllClients();
-      setClients(allClients);
-    } catch (err) {
-      console.log(err);
-      alert("Error fetching clients");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const { setLoading } = useContext(AuthContext);
+  const { clients, refresh } = useClients();
 
   function editPerson(person) {
     setUserEdit(person);
@@ -47,12 +30,12 @@ export default function Client() {
     setLoading(true);
     try {
       await saveClient({ name: client.name, phone: client.phone, email: client.email, address: client.address });
-      alert("Success");
+      alert('Success');
       setModalVisibility(false);
-      fetchClients(); // Re-fetch clients to update the list
+      refresh();
     } catch (err) {
       console.log(err);
-      alert("Error saving client");
+      alert('Error saving client');
     } finally {
       setLoading(false);
     }
@@ -62,12 +45,12 @@ export default function Client() {
     setLoading(true);
     try {
       await saveClient({ _id: client.id, name: client.name, phone: client.phone, email: client.email, address: client.address });
-      alert("Success");
+      alert('Success');
       setModalEditVisibility(false);
-      fetchClients(); // Re-fetch clients to update the list
+      refresh();
     } catch (err) {
       console.log(err);
-      alert("Error updating client");
+      alert('Error updating client');
     } finally {
       setUserEdit(null);
       setLoading(false);
@@ -79,11 +62,11 @@ export default function Client() {
     try {
       const clientId = typeof client === 'string' ? client : client.id;
       await deleteClient(clientId);
-      alert("Cliente Excluído!");
-      fetchClients(); // Re-fetch clients to update the list
+      alert('Cliente Excluído!');
+      refresh();
     } catch (err) {
       console.log(err);
-      alert("Error deleting client");
+      alert('Error deleting client');
     } finally {
       setLoading(false);
       setModalVisibility(false);
@@ -97,26 +80,17 @@ export default function Client() {
         <FlatListClients clients={clients} handlerEdit={editPerson} handleDelete={removeClient} />
       </Container>
 
-      {modalVisibility &&
-        <Modal
-          transparent={true}
-          animationType="slide" visible={modalVisibility} onRequestClose={() => setModalVisibility(false)}>
-          <NewClient modalClose={setModalVisibility}
-            setClient={addClient} />
+      {modalVisibility && (
+        <Modal transparent animationType="slide" visible={modalVisibility} onRequestClose={() => setModalVisibility(false)}>
+          <NewClient modalClose={setModalVisibility} setClient={addClient} />
         </Modal>
-      }
-      {modalEditVisibility &&
-        <Modal
-          transparent={true}
-          animationType="slide" visible={modalEditVisibility} onRequestClose={() => setModalEditVisibility(false)}>
-          <EditClient modalClose={setModalEditVisibility}
-            initialValue={userEdit} updateClient={(client) => editClient(client)} />
+      )}
+      {modalEditVisibility && (
+        <Modal transparent animationType="slide" visible={modalEditVisibility} onRequestClose={() => setModalEditVisibility(false)}>
+          <EditClient modalClose={setModalEditVisibility} initialValue={userEdit} updateClient={(client) => editClient(client)} />
         </Modal>
-      }
-      {/*botao add novo cliente*/}
-      <FloatingButton onClick={() => setModalVisibility(true)}
-        icon={<Icon name='person-add' size={30} color="white" />} />
-
+      )}
+      <FloatingButton onClick={() => setModalVisibility(true)} icon={<Icon name="person-add" size={30} color="white" />} />
     </Background>
   );
 }

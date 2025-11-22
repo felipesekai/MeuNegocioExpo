@@ -6,7 +6,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { TouchableOpacity, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { Form } from '@unform/mobile';
-import * as Yup from 'yup';
+import { productSchema } from '../../../validation/schemas';
 import InputText from '../../../components/Form/InputText';
 
 const EditProduct = ({ onClose, initialValue, submitEdit }) => {
@@ -18,13 +18,7 @@ const EditProduct = ({ onClose, initialValue, submitEdit }) => {
         const msgErrorPrice = 'Preço do produto é obrigatório!'
 
         try {
-            const scheme = Yup.object().shape({
-                name: Yup.string(msgErrorName).required(msgErrorName),
-                description: Yup.string().optional(), // Description is now an optional field
-                price: Yup.string(msgErrorPrice).required(msgErrorPrice),
-            })
-
-            await scheme.validate(data, { abortEarly: false });
+            await productSchema.validate(data, { abortEarly: false });
             let newData = { ...{ id: initialValue.id }, ...data }
             submitEdit(newData);
         } catch (error) {

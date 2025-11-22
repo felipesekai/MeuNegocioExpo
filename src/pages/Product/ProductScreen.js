@@ -1,46 +1,30 @@
-import React, {useState, useContext, useEffect, useCallback} from 'react';
-import { ActivityIndicator, Modal, Alert } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { Modal, Alert } from 'react-native';
 import Header from '../../components/Header';
 import { Container, HeaderList, TextHL } from './styles';
 import { Background } from '../../utils/Style';
 import FloatingButton, { Icons } from '../../components/FloatingButton';
 import FlatListProducts from './FlatListProducts';
 import NewProduct from './NewProduct';
-import { saveProduct, deleteProduct, getAllProducts } from '../../database';
+import { saveProduct, deleteProduct } from '../../database';
 import { AuthContext } from '../../contexts/auth';
 import EditProduct from './EditProduct';
+import { useProducts } from '../../hooks/useProducts';
 
-
-const Product = () => {
+const ProductScreen = () => {
     const [modalNewVisibility,setModalNewVisibility] = useState(false);
     const [modalEditVisibility,setModalEditVisibility] = useState(false);
     const [productEdit,setProductEdit] = useState({});
-    const { loading, setLoading, theme} = useContext(AuthContext);
-    const [products, setProducts] = useState([]); // State to hold products
+    const { setLoading, theme} = useContext(AuthContext);
+    const { products, refresh } = useProducts();
 
-    useEffect(() => {
-        fetchProducts();
-    }, []);
-
-    // Function to fetch products from the local database
-    async function fetchProducts() {
-      setLoading(true);
-      try {
-        const allProducts = await getAllProducts();
-        setProducts(allProducts);
-      } catch (err) {
-        console.log(err);
-        alert("Error fetching products");
-      } finally {
-        setLoading(false);
-      }
-    }    async function addNewProduct(product) {
+    async function addNewProduct(product) {
         setLoading(true);
         try {
             await saveProduct({ name: product.name, description: product.description, price: parseFloat(product.price) });
             alert('Produto cadastrado!');
             setModalNewVisibility(false);
-            fetchProducts(); // Re-fetch products to update the list
+            refresh();
         } catch (error) {
             alert('Erro ao cadastrar Produto!');
             console.log(error);
@@ -53,9 +37,9 @@ const Product = () => {
         setLoading(true);
         try {
             await saveProduct({ _id: product.id, name: product.name, description: product.description, price: parseFloat(product.price) });
-            alert('Produto alterado!'); // Added alert for clarity
+            alert('Produto alterado!');
             setModalEditVisibility(false);
-            fetchProducts(); // Re-fetch products to update the list
+            refresh();
         } catch (error) {
             Alert.alert('Ops...','Erro ao Alterar Produto!');
             console.log(error);
@@ -69,7 +53,7 @@ const Product = () => {
         try {
             await deleteProduct(product.id);
             Alert.alert('Produto excluido!','');
-            fetchProducts(); // Re-fetch products to update the list
+            refresh();
         } catch (error) {
             Alert.alert('Ops...','Erro ao deletar Produto!');
             console.log(error);
@@ -89,7 +73,7 @@ const Product = () => {
             </HeaderList>
             <Container>
                 <FlatListProducts
-                    products={products} // Pass the products list
+                    products={products}
                     openEdit={setModalEditVisibility} 
                     itemEdit={setProductEdit} 
                     handlerDelete={handlerDeleteProduct} />
@@ -124,4 +108,4 @@ const Product = () => {
     );
 }
 
-export default Product;
+export default ProductScreen;

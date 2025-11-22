@@ -130,3 +130,19 @@ Contribuições são bem-vindas! Se você deseja contribuir, por favor, siga est
 ## Licença
 
 Este projeto está licenciado sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+
+## Ambiente (.env)
+
+Defina variaveis no `.env` ou `app.json`:
+
+```
+FIREBASE_API_KEY=
+FIREBASE_AUTH_DOMAIN=
+FIREBASE_DATABASE_URL=
+FIREBASE_PROJECT_ID=
+FIREBASE_STORAGE_BUCKET=
+FIREBASE_MESSAGING_SENDER_ID=
+FIREBASE_APP_ID=
+```
+
+Substitua com os valores do seu projeto Firebase.

@@ -1,41 +1,29 @@
-# Plano de Refatoração
+# Plano de Refatoracao em Sprints
 
-## Camadas e separação
-- Extrair camada de repositórios/DB com interface única (SQLite + sync), evitando acesso direto em telas.
-- Mover lógica de sync para um serviço isolado com fila/estado.
+## Sprint 1 — Fundamentos e limpeza (concluída)
+- [x] Remover dependencias nao usadas (Realm) e documentar variaveis de ambiente em `.env`/app.json.
+- [x] Padronizar chamadas async com helper de request (loading/erro) e limpar listeners Firebase.
+- [x] Criar schemas de validacao (Yup/Zod) para Cliente/Produto/Pedido e aplicar nos forms.
+- [x] Ajustar keyExtractor/memo/useCallback em listas criticas para evitar renders extras.
 
-## Estado e hooks
-- Centralizar estados globais (auth, tema, pedidos em andamento) em contextos ou Zustand/Jotai.
-- Criar hooks `useOrders`, `useClients`, `useProducts` para leitura/cache e invalidação pós-mutações.
+## Sprint 2 — Camadas e hooks (em andamento)
+- [ ] Extrair camada de repositorios/DB com interface unica (SQLite + sync), evitando acesso direto em telas.
+- [x] Mover logica de sync para servico isolado (pull/push, timestamps, logs, retries) via repositorio.
+- [x] Criar hooks `useOrders`, `useClients`, `useProducts` com cache e invalidacao pos-mutacoes (aplicados em pedidos, clientes e carregamento de produtos).
+- [x] Centralizar estados globais (auth, tema, pedidos em andamento) em contextos ou store leve (Zustand/Jotai).
+- [x] Renomear arquivos `index.js` de telas/componentes para nomes descritivos (ClientScreen, ProductScreen, NewRequestScreen, LastOrdersScreen) e ajustar imports.
 
-## Fluxos assíncronos
-- Padronizar chamadas async com `try/catch` e feedback de loading/erro.
-- Criar helper de `request` com toasts e logs; remover `useEffect` duplicado e limpar listeners Firebase.
+## Sprint 3 — UI/UX e componentes
+- Padronizar inputs/botoes/listas (contador numerico, dialog de confirmacao, loader central).
+- Alinhar icones/tipografia/cores via tema; revisar acessibilidade (labels, touch targets).
+- Revisar navegacao: arquivos dedicados para navegadores, callbacks de foco para recarregar dados sem re-montar telas.
 
-## UI/UX e componentes
-- Padronizar inputs/botões/listas em componentes compartilhados (contador numérico, dialog de confirmação, loader).
-- Alinhar ícones/tipografia/cores via theme; revisar acessibilidade (labels, touch targets).
-
-## Navegação
-- Garantir type-safety/proptypes nas rotas; mover criação de navegadores para arquivos dedicados.
-- Usar callbacks de foco para recarregar dados em vez de re-montar telas inteiras.
-
-## Modelos e validação
-- Definir schemas (Yup/Zod) para entidades (Cliente, Produto, Pedido) e reuso em forms e sync.
-- Normalizar campos (datas, números) antes de persistir.
-
-## Sync/offline
-- Isolar diff/pull/push em módulo; manter timestamps/versões claros; tratar conflitos e exclusões.
-- Adicionar logs e retries.
-
-## Testes e qualidade
-- Adicionar testes unitários para services (DB/sync) e hooks; smoke tests de navegação.
+## Sprint 4 — Testes e qualidade
 - Configurar lint/format (ESLint/Prettier) e scripts CI.
+- Adicionar testes unitarios para services (DB/sync) e hooks; smoke tests de navegacao basica.
+- Substituir patches em `node_modules` por patch-package ou solucao definitiva.
 
-## Configuração e secrets
-- Centralizar variáveis (Firebase, etc.) em `.env`/app.json; remover dependências não usadas (Realm).
-- Substituir patches em node_modules por patch-package ou alternativas estáveis.
-
-## Performance e listas
-- Usar `keyExtractor` consistente, `memo`/`useCallback` nos itens de lista.
-- Evitar re-renders re-montando modais; carregar dados de forma incremental/paginada se necessário.
+## Sprint 5 — Performance e sincronizacao avançada
+- Normalizar campos (datas, numeros) antes de persistir; tratar conflitos/exclusoes no sync.
+- Incremental/paginado em listas se necessario; evitar re-montar modais para acoes frequentes.
+- Monitorar logs de sync/offline e ajustar estrategia de retries.

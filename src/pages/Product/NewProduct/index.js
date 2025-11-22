@@ -6,7 +6,7 @@ import React, { useState, useRef, } from 'react';
 import { TouchableOpacity, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { Form } from '@unform/mobile';
-import * as Yup from 'yup';
+import { productSchema } from '../../../validation/schemas';
 import InputText from '../../../components/Form/InputText';
 
 
@@ -19,13 +19,7 @@ const NewProduct = ({ onClose, setNewProduct }) => {
         const stringP = 'Preço do produto é obrigatório!'
 
         try {
-            const scheme = Yup.object().shape({
-                name: Yup.string(stringN).required(stringN),
-                description: Yup.string().optional(), // Description is now an optional field
-                price: Yup.string(stringP).required(stringP),
-            })
-
-            await scheme.validate(data, { abortEarly: false });
+            await productSchema.validate(data, { abortEarly: false });
 
             setNewProduct(data);
             

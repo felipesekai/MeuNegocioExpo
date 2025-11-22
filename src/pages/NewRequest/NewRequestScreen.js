@@ -10,15 +10,18 @@ import InputText from '../../components/Form/InputText';
 import DatePicker from '../../components/DatePicker/index';
 import ModalClientSelector from './ModalClientSelector';
 import MyButton from '../../components/MyButton';
-import * as Yup from 'yup';
 import { AuthContext } from '../../contexts/auth';
-import { createOrder, getAllProducts } from '../../database';
+import { createOrder } from '../../database';
 import { Platform } from 'react-native';
+import { orderSchema } from '../../validation/schemas';
+import { useProducts } from '../../hooks/useProducts';
+import { useGlobal } from '../../contexts/global';
+import * as Yup from 'yup';
 
-const NewRequest = ({ onClose, onCreated }) => {
+const NewRequestScreen = ({ onClose, onCreated }) => {
     const formRef = useRef(null);
     const [products, setProducts] = useState([]); // This state holds selected products with quantity
-    const [allProducts, setAllProducts] = useState([]); // This state holds all products from DB
+    const { products: allProducts, refresh: refreshProducts } = useProducts();
     const [dataPikcerStatus, setDatePickerStatus] = useState(false);
     const [clientPickerStatus, setClientPickerStatus] = useState(false);
     const [clientSelected, setClientSelected] = useState(null);
@@ -26,23 +29,11 @@ const NewRequest = ({ onClose, onCreated }) => {
     const [dateformat, setDateformat] = useState(format(new Date(), 'dd/MM/yyyy'));
     const [total, setTotal] = useState(0);
     const { theme, setLoading } = useContext(AuthContext); // Destructure setLoading from AuthContext
+    const { setPendingOrders } = useGlobal();
 
     useEffect(() => {
-        // Fetch all products on component mount
-        async function fetchAllProducts() {
-            setLoading(true);
-            try {
-                const fetchedProducts = await getAllProducts();
-                setAllProducts(fetchedProducts);
-            } catch (error) {
-                console.error("Error fetching all products:", error);
-                Alert.alert("Erro", "Não foi possível carregar os produtos.");
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchAllProducts();
-    }, []);
+        refreshProducts();
+    }, [refreshProducts]);
 
     useEffect(() => {
         if (products.length > 0) {
@@ -86,13 +77,7 @@ const NewRequest = ({ onClose, onCreated }) => {
         }
 
         try {
-            const scheme = Yup.object().shape({
-                client: Yup.object().required(),
-                date: Yup.string().required(),
-                products: Yup.array().min(1).required(),
-            });
-
-            await scheme.validate(data, { abortEarly: false });
+            await orderSchema.validate(data, { abortEarly: false });
             Alert.alert("Confirmar Pedido?",
                 data.products.map(item => {
                     // Find the original product name from the 'products' state for the alert message
@@ -113,6 +98,7 @@ const NewRequest = ({ onClose, onCreated }) => {
                                 status: 'open',
                                 products: data.products
                             });
+                            setPendingOrders((prev) => prev + 1);
                             if (typeof onCreated === 'function') {
                                 onCreated();
                             }
@@ -167,24 +153,18 @@ const NewRequest = ({ onClose, onCreated }) => {
                             {Icons('arrow-back', 30, theme.backgroundColor)}
                         </TouchableOpacity>
                         <Title>{total > 0 ? 'Total: ' + total.toFixed(2) : 'Novo Pedido'}</Title>
-                        <ButtonView>
-                            <TouchableOpacity onPress={() => formRef.current.submitForm()} >
-                                <Title>Ok</Title>
-                            </TouchableOpacity>
-                        </ButtonView>
                     </Header>
-
                 </HeaderBackground>
 
                 <Container>
                     <Form style={{ flex: 1 }} ref={formRef} onSubmit={handleSubmitForm}>
                         <ContainerClient>
-                            <TouchableOpacity style={{ flex: 1 }} onPress={() => setClientPickerStatus(true)}>
+                            <TouchableOpacity onPress={() => setClientPickerStatus(true)}>
                                 <InputText
                                     name='client'
                                     label='Cliente' editable={false}
                                     value={clientSelected ? clientSelected.name : 'Selecione um Cliente'}
-                                    style={{ color: theme.textColor, height: 40 }}
+                                    style={{ color: theme.textColor, height: 40, width: 150 }}
                                 />
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => setDatePickerStatus(true)}>
@@ -193,9 +173,16 @@ const NewRequest = ({ onClose, onCreated }) => {
                                     defaultValue={dateformat || 'dia/mes/ano'}
                                     style={{ color: theme.textColor, height: 40, width: 100 }} />
                             </TouchableOpacity>
+
                         </ContainerClient>
                         <FlatListProducts products={allProducts} list={products} setList={setProducts} _total={total} _setTotal={setTotal} />
+                        <ButtonView>
+                            <MyButton title={'Confirmar'} onClick={() => formRef.current.submitForm()} />
+                        </ButtonView>
                     </Form>
+
+
+
                 </Container>
 
 
@@ -207,4 +194,4 @@ const NewRequest = ({ onClose, onCreated }) => {
     );
 }
 
-export default NewRequest;
+export default NewRequestScreen;

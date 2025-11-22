@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import TaskList from '../pages/Home/TaskListPagerView';
-import LastOrders from '../pages/Home/LastOrdersPagerView';
+import LastOrders from '../pages/Home/LastOrdersPagerView/LastOrdersScreen';
 import LayoutIconTopTab from '../components/LayoutIconTopTab';
 import { useTheme } from 'styled-components';
 const Tab = createMaterialTopTabNavigator();
