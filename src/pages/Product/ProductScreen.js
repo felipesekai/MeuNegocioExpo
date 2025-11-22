@@ -29,7 +29,7 @@ const ProductScreen = () => {
   async function addNewProduct(product) {
     setLoading(true);
     try {
-      await createProduct({ name: product.name, description: product.description, price: parseFloat(product.price) });
+      await createProduct({ name: product.name, description: product.description, price: parseFloat(product.price), quantity: Number(product.quantity) || 0 });
       alert('Produto cadastrado!');
       setModalNewVisibility(false);
       refresh({ force: true });
@@ -44,7 +44,7 @@ const ProductScreen = () => {
   async function handlerEditProduct(product) {
     setLoading(true);
     try {
-      await updateProduct({ _id: product.id, name: product.name, description: product.description, price: parseFloat(product.price) });
+      await updateProduct({ _id: product.id, name: product.name, description: product.description, price: parseFloat(product.price), quantity: Number(product.quantity) || 0 });
       alert('Produto alterado!');
       setModalEditVisibility(false);
       refresh({ force: true });

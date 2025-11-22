@@ -42,7 +42,13 @@ export async function getFBUpdatedClients(userId, timestamp) {
 export function upsertProduct(userId, product) {
     const db = getDatabase();
     const productRef = ref(db, `users/${userId}/products/${product.id}`);
-    return set(productRef, { name: product.name, price: product.price, updated_at: product.updated_at, _status: product._status });
+    return set(productRef, {
+        name: product.name,
+        price: product.price,
+        quantity: product.quantity || 0,
+        updated_at: product.updated_at,
+        _status: product._status
+    });
 }
 export function deleteProduct(userId, productId) {
     const db = getDatabase();

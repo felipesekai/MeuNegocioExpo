@@ -27,6 +27,7 @@ const mapProductRow = (row) => ({
   name: row.name,
   description: row.description,
   price: Number(row.price) || 0,
+  quantity: Number(row.quantity) || 0,
   createdAt: mapDate(row.createdAt) || undefined,
   updatedAt: mapDate(row.updatedAt) || undefined,
 });
@@ -98,13 +99,28 @@ export async function saveProduct(productData) {
 
   if (existing) {
     await executeSql(
-      `UPDATE products SET name = ?, description = ?, price = ?, updatedAt = ? WHERE _id = ?`,
-      [productData.name || '', productData.description || null, Number(productData.price) || 0, updatedAt, id],
+      `UPDATE products SET name = ?, description = ?, price = ?, quantity = ?, updatedAt = ? WHERE _id = ?`,
+      [
+        productData.name || '',
+        productData.description || null,
+        Number(productData.price) || 0,
+        Number(productData.quantity) || 0,
+        updatedAt,
+        id,
+      ],
     );
   } else {
     await executeSql(
-      `INSERT INTO products (_id, name, description, price, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, productData.name || '', productData.description || null, Number(productData.price) || 0, createdAt, updatedAt],
+      `INSERT INTO products (_id, name, description, price, quantity, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        id,
+        productData.name || '',
+        productData.description || null,
+        Number(productData.price) || 0,
+        Number(productData.quantity) || 0,
+        createdAt,
+        updatedAt,
+      ],
     );
   }
 

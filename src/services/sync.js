@@ -69,6 +69,7 @@ async function pullChanges(userId, lastSyncedAt) {
         name: remoteProduct.name || '',
         description: remoteProduct.description || null,
         price: Number(remoteProduct.price) || 0,
+        quantity: Number(remoteProduct.quantity) || 0,
         createdAt: remoteProduct.created_at ? toDate(remoteProduct.created_at) : updatedAt,
         updatedAt,
       });
@@ -132,6 +133,7 @@ const serializeProduct = (product) => ({
   id: product._id,
   name: product.name,
   price: product.price,
+  quantity: product.quantity || 0,
   updated_at: product.updatedAt ? product.updatedAt.getTime() : Date.now(),
   _status: 'updated',
 });

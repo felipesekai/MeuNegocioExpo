@@ -24,6 +24,7 @@ const ensureTables = (() => {
           name TEXT NOT NULL,
           description TEXT,
           price REAL NOT NULL,
+          quantity INTEGER DEFAULT 0,
           createdAt INTEGER,
           updatedAt INTEGER
         );
@@ -47,7 +48,15 @@ const ensureTables = (() => {
         );
         `
       )
-      .then(() => true);
+      .then(async () => {
+        // ensure quantity column exists (migration para bancos antigos)
+        const columns = await db.getAllAsync(`PRAGMA table_info(products);`);
+        const hasQuantity = columns?.some((c) => c?.name === 'quantity');
+        if (!hasQuantity) {
+          await db.execAsync(`ALTER TABLE products ADD COLUMN quantity INTEGER DEFAULT 0;`);
+        }
+        return true;
+      });
     return initialized;
   };
 })();
