@@ -59,6 +59,8 @@ jest.mock('../../src/database/repository', () => ({
     saveRecord: jest.fn(),
     updatedSince: jest.fn().mockResolvedValue([]),
     save: jest.fn(),
+    getItems: jest.fn().mockResolvedValue([]),
+    updateWithProducts: jest.fn(),
   },
 }));
 

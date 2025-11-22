@@ -61,7 +61,15 @@ export async function getFBUpdatedProducts(userId, timestamp) {
 export function upsertOrder(userId, order) {
     const db = getDatabase();
     const orderedRef = ref(db, `users/${userId}/ordered/${order.id}`);
-    return set(orderedRef, { clientId: order.client_id, status: order.status, updated_at: order.updated_at, _status: order._status /*, products: order.products */ });
+    return set(orderedRef, {
+        clientId: order.client_id,
+        status: order.status,
+        totalAmount: order.totalAmount || 0,
+        orderDate: order.orderDate || null,
+        products: order.products || [],
+        updated_at: order.updated_at,
+        _status: order._status,
+    });
 }
 export function deleteOrder(userId, orderId) {
     const db = getDatabase();

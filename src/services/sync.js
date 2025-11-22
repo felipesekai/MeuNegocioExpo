@@ -90,14 +90,32 @@ async function pullChanges(userId, lastSyncedAt) {
     const localUpdatedAt = localOrder?.updatedAt?.getTime?.() || 0;
 
     if (!localOrder || localUpdatedAt < updatedAt.getTime()) {
-      await orderRepository.saveRecord({
-        _id: orderId,
-        clientId: clientIdentifier,
-        status: remoteOrder.status || localOrder?.status || 'pending',
-        totalAmount: Number(remoteOrder.totalAmount) || localOrder?.totalAmount || 0,
-        orderDate: remoteOrder.orderDate ? toDate(remoteOrder.orderDate) : updatedAt,
-        updatedAt,
-      });
+      const productsRemote = Array.isArray(remoteOrder.products)
+        ? remoteOrder.products
+        : Object.values(remoteOrder.products || {});
+
+      if (productsRemote.length > 0) {
+        await orderRepository.updateWithProducts({
+          _id: orderId,
+          clientId: clientIdentifier,
+          status: remoteOrder.status || localOrder?.status || 'pending',
+          products: productsRemote.map((p) => ({
+            productId: p.productId || p.id || p._id,
+            quantity: Number(p.quantity) || 0,
+            unitPrice: Number(p.unitPrice ?? p.price) || 0,
+          })),
+          orderDate: remoteOrder.orderDate ? toDate(remoteOrder.orderDate) : updatedAt,
+        });
+      } else {
+        await orderRepository.saveRecord({
+          _id: orderId,
+          clientId: clientIdentifier,
+          status: remoteOrder.status || localOrder?.status || 'pending',
+          totalAmount: Number(remoteOrder.totalAmount) || localOrder?.totalAmount || 0,
+          orderDate: remoteOrder.orderDate ? toDate(remoteOrder.orderDate) : updatedAt,
+          updatedAt,
+        });
+      }
     }
   }
 }
@@ -118,10 +136,17 @@ const serializeProduct = (product) => ({
   _status: 'updated',
 });
 
-const serializeOrder = (order) => ({
+const serializeOrder = (order, items = []) => ({
   id: order._id,
   client_id: order.clientId || '',
   status: order.status,
+  totalAmount: order.totalAmount || 0,
+  orderDate: order.orderDate ? order.orderDate.getTime?.() || order.orderDate : undefined,
+  products: items.map((it) => ({
+    productId: it.productId,
+    quantity: it.quantity,
+    unitPrice: it.unitPrice,
+  })),
   updated_at: order.updatedAt ? order.updatedAt.getTime() : Date.now(),
   _status: 'updated',
 });
@@ -142,7 +167,8 @@ async function pushChanges(userId, lastSyncedAt) {
 
   const updatedOrders = await orderRepository.updatedSince(sinceDate.getTime());
   for (const order of updatedOrders) {
-    await firebase.upsertOrder(userId, serializeOrder(order));
+    const items = await orderRepository.getItems(order._id);
+    await firebase.upsertOrder(userId, serializeOrder(order, items));
   }
 }
 
