@@ -4,7 +4,7 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import Home from '../pages/Home/HomeScreen';
 import Client from '../pages/Client/ClientScreen';
 import Product from '../pages/Product/ProductScreen';
-import Account from '../pages/Account';
+import Account from '../pages/Account/AccountScreen';
 import CustomDrawer from '../components/CustomDrawer';
 import Icon from '@expo/vector-icons/MaterialIcons';
 

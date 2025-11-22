@@ -1,8 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SignIn from '../pages/SignIn';
-import SignUp from '../pages/SignUp';
+import SignIn from '../pages/SignIn/SignInScreen';
+import SignUp from '../pages/SignUp/SignUpScreen';
 import {useTheme} from 'styled-components';
 const Stack = createNativeStackNavigator();
 const AuthRoute = () => {

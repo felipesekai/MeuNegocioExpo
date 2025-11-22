@@ -1,10 +1,8 @@
 import React from 'react';
-import { View } from 'react-native';
-
 import { Container } from './styles';
 
-const User = () => {
+const UserScreen = () => {
   return <Container />;
-}
+};
 
-export default User;
+export default UserScreen;

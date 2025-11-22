@@ -5,7 +5,7 @@ import { Container, Link, LinkText } from './styles';
 import MyButton from '../../components/MyButton';
 import { AuthContext } from '../../contexts/auth';
 
-const SignIn = ({ onSwitchToSignUp }) => {
+const SignInScreen = ({ onSwitchToSignUp }) => {
     const { signIn } = useContext(AuthContext);
     const [email, setEmail] = useState('sekai@sekai.com');
     const [password, setPassword] = useState('123456')
@@ -35,4 +35,4 @@ const SignIn = ({ onSwitchToSignUp }) => {
     );
 }
 
-export default SignIn;
+export default SignInScreen;

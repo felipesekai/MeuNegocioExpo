@@ -8,7 +8,7 @@ import MyButton from '../../components/MyButton';
 import * as Yup from 'yup';
 import { errorMenssage } from '../../utils/Strings';
  
-const SignUp = ({ onSwitchToSignIn }) => {
+const SignUpScreen = ({ onSwitchToSignIn }) => {
     const { signUp } = useContext(AuthContext);
 
     const formRef = useRef(null);
@@ -66,4 +66,4 @@ const SignUp = ({ onSwitchToSignIn }) => {
     );
 }
 
-export default SignUp;
+export default SignUpScreen;
