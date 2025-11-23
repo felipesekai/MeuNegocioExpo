@@ -34,7 +34,22 @@ const AccountScreen = () => {
                 return;
             }
             const files = await FileSystem.readDirectoryAsync(folder);
-            setBackups(files.reverse()); // Show newest first
+
+            const formattedBackups = files.map(filename => {
+                try {
+                    // Extract timestamp from "meunegocio-backup-1732376993000.db"
+                    const timestamp = parseInt(filename.split('-')[2].split('.')[0], 10);
+                    return {
+                        name: filename,
+                        time: timestamp,
+                        label: format(timestamp, "dd/MM/yyyy 'às' HH:mm")
+                    };
+                } catch (e) {
+                    return { name: filename, time: 0, label: filename };
+                }
+            }).sort((a, b) => b.time - a.time); // Sort by newest
+
+            setBackups(formattedBackups);
         } catch (err) {
             console.error(err);
             Alert.alert('Erro', 'Não foi possível listar os backups.');
@@ -178,13 +193,13 @@ const AccountScreen = () => {
                             ) : (
                                 <FlatList
                                     data={backups}
-                                    keyExtractor={(item) => item}
+                                    keyExtractor={(item) => item.name}
                                     renderItem={({ item }) => (
                                         <TouchableOpacity
                                             style={{ padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' }}
-                                            onPress={() => handleRestore(item)}
+                                            onPress={() => handleRestore(item.name)}
                                         >
-                                            <Text style={{ fontSize: 16, color: '#333' }}>{item}</Text>
+                                            <Text style={{ fontSize: 16, color: '#333' }}>{item.label}</Text>
                                         </TouchableOpacity>
                                     )}
                                 />
@@ -195,7 +210,7 @@ const AccountScreen = () => {
                         </View>
                     </View>
                 </Modal>
-            </Background>
+            </Background >
         );
     }
 
