@@ -21,7 +21,7 @@
 - [x] Nova tela/modal “Registrar Compra” acessível a partir de Produtos.
 - [x] Form com seleção de produto, quantidade, custo unitário; mostra custo total.
 - [x] Ao confirmar: chama `createPurchase` e atualiza estoque e lista de produtos.
-- [ ] Lista de compras (histórico) opcional na mesma tela ou seção separada.
+- [x] Lista de compras (histórico) opcional na mesma tela ou seção separada.
 
 ### Etapa 3 — Integração com vendas (pedidos)
 - [x] No fluxo de pedido, ao confirmar venda: `decrementStock(productId, quantity)`.
@@ -33,12 +33,12 @@
   - Serializar compra com `productId`, `quantity`, `unitCost`, `totalCost`, `purchasedAt`, `updated_at`, `_status`.
   - Pull: recriar compras e ajustar estoque (idempotente).
   - Push: enviar compras novas/alteradas/deletadas.
-- [ ] Garantir que `products.quantity` permanece consistente (talvez recalcular estoque a partir de compras-vendas em caso de divergência).
+- [x] Garantir que `products.quantity` permanece consistente (talvez recalcular estoque a partir de compras-vendas em caso de divergência).
 
 ### Etapa 5 — UX e relatórios
-- [ ] Mostrar badge de estoque e custo médio (opcional) na lista de produtos.
-- [ ] Histórico de compras por produto (filtro).
-- [ ] Exportar/compartilhar histórico de compras (CSV) via sharing.
+- [x] Mostrar badge de estoque e custo médio (opcional) na lista de produtos.
+- [x] Histórico de compras por produto (filtro).
+- [x] Exportar/compartilhar histórico de compras (CSV) via sharing.
 
 ## Considerações técnicas
 - Transações: ao criar compra ou venda, usar `runInTransaction` para manter estoque consistente.

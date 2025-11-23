@@ -70,7 +70,6 @@ async function pullChanges(userId, lastSyncedAt) {
         name: remoteProduct.name || '',
         description: remoteProduct.description || null,
         price: Number(remoteProduct.price) || 0,
-        quantity: Number(remoteProduct.quantity) || 0,
         createdAt: remoteProduct.created_at ? toDate(remoteProduct.created_at) : updatedAt,
         updatedAt,
       });
@@ -91,16 +90,32 @@ async function pullChanges(userId, lastSyncedAt) {
     const updatedAt = toDate(remoteOrder.updated_at);
     const localUpdatedAt = localOrder?.updatedAt?.getTime?.() || 0;
 
-    if (!localOrder || localUpdatedAt < updatedAt.getTime()) {
-      const productsRemote = Array.isArray(remoteOrder.products)
-        ? remoteOrder.products
-        : Object.values(remoteOrder.products || {});
+    if (localOrder && localUpdatedAt >= updatedAt.getTime()) {
+      continue;
+    }
 
+    const productsRemote = Array.isArray(remoteOrder.products)
+      ? remoteOrder.products
+      : Object.values(remoteOrder.products || {});
+
+    if (localOrder) { // Update existing order
+      await orderRepository.updateWithProducts({
+        _id: orderId,
+        clientId: clientIdentifier,
+        status: remoteOrder.status || localOrder.status,
+        products: productsRemote.map((p) => ({
+          productId: p.productId || p.id || p._id,
+          quantity: Number(p.quantity) || 0,
+          unitPrice: Number(p.unitPrice ?? p.price) || 0,
+        })),
+        orderDate: remoteOrder.orderDate ? toDate(remoteOrder.orderDate) : updatedAt,
+      });
+    } else { // Create new order
       if (productsRemote.length > 0) {
-        await orderRepository.updateWithProducts({
+        await orderRepository.save({ // Corresponds to createOrder
           _id: orderId,
           clientId: clientIdentifier,
-          status: remoteOrder.status || localOrder?.status || 'pending',
+          status: remoteOrder.status || 'pending',
           products: productsRemote.map((p) => ({
             productId: p.productId || p.id || p._id,
             quantity: Number(p.quantity) || 0,
@@ -108,12 +123,12 @@ async function pullChanges(userId, lastSyncedAt) {
           })),
           orderDate: remoteOrder.orderDate ? toDate(remoteOrder.orderDate) : updatedAt,
         });
-      } else {
+      } else { // No products, just save the record
         await orderRepository.saveRecord({
           _id: orderId,
           clientId: clientIdentifier,
-          status: remoteOrder.status || localOrder?.status || 'pending',
-          totalAmount: Number(remoteOrder.totalAmount) || localOrder?.totalAmount || 0,
+          status: remoteOrder.status || 'pending',
+          totalAmount: Number(remoteOrder.totalAmount) || 0,
           orderDate: remoteOrder.orderDate ? toDate(remoteOrder.orderDate) : updatedAt,
           updatedAt,
         });
@@ -135,6 +150,8 @@ async function pullChanges(userId, lastSyncedAt) {
     const localUpdatedAt = localPurchase?.updatedAt?.getTime?.() || 0;
 
     if (!localPurchase || localUpdatedAt < updatedAt.getTime()) {
+      const quantityChange = (Number(remotePurchase.quantity) || 0) - (localPurchase ? (Number(localPurchase.quantity) || 0) : 0);
+
       await purchaseRepository.saveRecord({
         _id: purchaseId,
         productId: remotePurchase.productId,
@@ -145,6 +162,10 @@ async function pullChanges(userId, lastSyncedAt) {
         createdAt: remotePurchase.created_at ? toDate(remotePurchase.created_at) : updatedAt,
         updatedAt,
       });
+
+      if (quantityChange !== 0) {
+        await productRepository.addStock(remotePurchase.productId, quantityChange);
+      }
     }
   }
 }
@@ -171,7 +192,6 @@ const serializeProduct = (product) => ({
   id: product._id,
   name: product.name,
   price: product.price,
-  quantity: product.quantity || 0,
   updated_at: product.updatedAt ? product.updatedAt.getTime() : Date.now(),
   _status: 'updated',
 });

@@ -29,6 +29,11 @@ const CardProducts = ({ itens: item, editItem, itemDelete, onAddStock, onHistory
         </View>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Textp>{item ? `R$ ${parseFloat(item.price).toFixed(2)}` : ''}</Textp>
+          {item.averageCost > 0 && (
+            <Text style={{ color: '#007aff', fontSize: 12, fontWeight: '600' }}>
+              Custo médio: R$ {item.averageCost.toFixed(2)}
+            </Text>
+          )}
         </View>
         <View style={{ alignItems: 'flex-end' }}>
           <Badge style={{ backgroundColor: getBadgeColor(item?.quantity ?? 0) }}>

@@ -150,8 +150,8 @@ export async function deleteProduct(productId) {
   await executeSql(`DELETE FROM products WHERE _id = ?`, [productId]);
 }
 
-export async function createOrder({ clientId, status, products, orderDate }) {
-  const orderId = generateId();
+export async function createOrder({ _id, clientId, status, products, orderDate }) {
+  const orderId = _id || generateId();
   const now = Date.now();
   const orderDateMs = toMillis(orderDate, now);
   let calculatedTotal = 0;
@@ -233,7 +233,17 @@ export async function updateOrderStatus(orderId, status) {
 }
 
 export async function deleteOrder(orderId) {
+  const items = await getOrderProductsByOrderId(orderId);
   await runInTransaction(async (tx) => {
+    const now = Date.now();
+    for (const item of items) {
+      const productResult = await tx.getAllAsync(`SELECT quantity FROM products WHERE _id = ?`, [item.productId]);
+      if (productResult && productResult.length > 0) {
+        const currentQty = Number(productResult[0].quantity) || 0;
+        const newQty = currentQty + item.quantity;
+        await tx.runAsync(`UPDATE products SET quantity = ?, updatedAt = ? WHERE _id = ?`, [newQty, now, item.productId]);
+      }
+    }
     await tx.runAsync(`DELETE FROM order_products WHERE orderId = ?`, [orderId]);
     await tx.runAsync(`DELETE FROM orders WHERE _id = ?`, [orderId]);
   });
@@ -251,6 +261,20 @@ export async function updateOrderWithProducts({ _id, clientId, status, products,
   let calculatedTotal = 0;
 
   await runInTransaction(async (tx) => {
+    // Get old items to revert stock
+    const oldItemsResult = await tx.getAllAsync(`SELECT * FROM order_products WHERE orderId = ?`, [_id]);
+    const oldItems = oldItemsResult.map(mapOrderProductRow);
+
+    // Revert stock from old items
+    for (const item of oldItems) {
+      const productResult = await tx.getAllAsync(`SELECT quantity FROM products WHERE _id = ?`, [item.productId]);
+      if (productResult && productResult.length > 0) {
+        const currentQty = Number(productResult[0].quantity) || 0;
+        const newQty = currentQty + item.quantity;
+        await tx.runAsync(`UPDATE products SET quantity = ?, updatedAt = ? WHERE _id = ?`, [newQty, now, item.productId]);
+      }
+    }
+
     await tx.runAsync(`DELETE FROM order_products WHERE orderId = ?`, [_id]);
 
     for (const productItem of products) {
@@ -263,6 +287,14 @@ export async function updateOrderWithProducts({ _id, clientId, status, products,
         `INSERT INTO order_products (_id, orderId, productId, quantity, unitPrice, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [orderProductId, _id, productItem.productId, qty, unitPrice, now, now],
       );
+
+      // Decrement stock for new items
+      const productResult = await tx.getAllAsync(`SELECT quantity FROM products WHERE _id = ?`, [productItem.productId]);
+      if (productResult && productResult.length > 0) {
+        const currentQty = Number(productResult[0].quantity) || 0;
+        const newQty = currentQty - qty;
+        await tx.runAsync(`UPDATE products SET quantity = ?, updatedAt = ? WHERE _id = ?`, [newQty, now, productItem.productId]);
+      }
     }
 
     await tx.runAsync(

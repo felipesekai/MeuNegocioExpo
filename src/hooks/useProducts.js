@@ -14,8 +14,23 @@ export function useProducts() {
     setError(null);
     await withRequest(
       async () => {
-        const all = await productRepository.getAll();
-        setProducts(all);
+        const [allProducts, allPurchases] = await Promise.all([
+          productRepository.getAll(),
+          purchaseRepository.getAllByProduct(),
+        ]);
+
+        const productsWithAvgCost = allProducts.map(product => {
+          const productPurchases = allPurchases.filter(p => p.productId === product._id);
+          const totalCost = productPurchases.reduce((acc, p) => acc + p.totalCost, 0);
+          const totalQuantity = productPurchases.reduce((acc, p) => acc + p.quantity, 0);
+          const averageCost = totalQuantity > 0 ? totalCost / totalQuantity : 0;
+          return {
+            ...product,
+            averageCost,
+          };
+        });
+
+        setProducts(productsWithAvgCost);
         cacheReady.current = true;
       },
       { setLoading, onError: (err) => setError(err) },
