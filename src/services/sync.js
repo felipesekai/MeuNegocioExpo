@@ -14,7 +14,7 @@ import {
   getProductById,
   getOrderById,
 } from '../database';
-import { clientRepository, productRepository, orderRepository } from '../database/repository';
+import { clientRepository, productRepository, orderRepository, purchaseRepository } from '../database/repository';
 
 const LAST_SYNCED_AT_KEY = 'last_synced_at';
 
@@ -27,6 +27,7 @@ async function pullChanges(userId, lastSyncedAt) {
   const remoteClients = (await firebase.getFBUpdatedClients(userId, since)) || {};
   const remoteProducts = (await firebase.getFBUpdatedProducts(userId, since)) || {};
   const remoteOrders = (await firebase.getFBUpdatedOrders(userId, since)) || {};
+  const remotePurchases = (await firebase.getFBUpdatedPurchases(userId, since)) || {};
 
   for (const [clientId, remoteClient] of Object.entries(remoteClients)) {
     const localClient = await clientRepository.getById(clientId);
@@ -119,7 +120,44 @@ async function pullChanges(userId, lastSyncedAt) {
       }
     }
   }
+
+  for (const [purchaseId, remotePurchase] of Object.entries(remotePurchases)) {
+    const localPurchase = await purchaseRepository.getById(purchaseId);
+
+    if (remotePurchase._status === 'deleted') {
+      // Purchases are usually not deleted, but if so:
+      // We don't have a deletePurchase yet in repo, let's skip or implement if needed.
+      // For now, ignore deletion or just log.
+      continue;
+    }
+
+    const updatedAt = toDate(remotePurchase.updated_at);
+    const localUpdatedAt = localPurchase?.updatedAt?.getTime?.() || 0;
+
+    if (!localPurchase || localUpdatedAt < updatedAt.getTime()) {
+      await purchaseRepository.saveRecord({
+        _id: purchaseId,
+        productId: remotePurchase.productId,
+        quantity: Number(remotePurchase.quantity) || 0,
+        unitCost: Number(remotePurchase.unitCost) || 0,
+        totalCost: Number(remotePurchase.totalCost) || 0,
+        purchasedAt: remotePurchase.purchasedAt ? toDate(remotePurchase.purchasedAt) : updatedAt,
+        createdAt: remotePurchase.created_at ? toDate(remotePurchase.created_at) : updatedAt,
+        updatedAt,
+      });
+    }
+  }
 }
+const serializePurchase = (purchase) => ({
+  id: purchase._id,
+  productId: purchase.productId,
+  quantity: purchase.quantity,
+  unitCost: purchase.unitCost,
+  totalCost: purchase.totalCost,
+  purchasedAt: purchase.purchasedAt ? purchase.purchasedAt.getTime() : Date.now(),
+  updated_at: purchase.updatedAt ? purchase.updatedAt.getTime() : Date.now(),
+  _status: 'updated',
+});
 
 const serializeClient = (client) => ({
   id: client._id,
@@ -171,6 +209,11 @@ async function pushChanges(userId, lastSyncedAt) {
   for (const order of updatedOrders) {
     const items = await orderRepository.getItems(order._id);
     await firebase.upsertOrder(userId, serializeOrder(order, items));
+  }
+
+  const updatedPurchases = await purchaseRepository.updatedSince(sinceDate.getTime());
+  for (const purchase of updatedPurchases) {
+    await firebase.upsertPurchase(userId, serializePurchase(purchase));
   }
 }
 

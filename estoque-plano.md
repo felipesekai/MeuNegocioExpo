@@ -9,27 +9,27 @@
 ## Escopo por etapas
 
 ### Etapa 1 — Modelo e persistência
-- [ ] Criar tabela `purchases` em SQLite: `_id`, `productId`, `quantity`, `unitCost`, `totalCost`, `purchasedAt`, `createdAt`, `updatedAt`.
-- [ ] Ajustar tabela `products` para ter `quantity` (já criado) e preparar índices.
-- [ ] Implementar funções no DB/repository:
+- [x] Criar tabela `purchases` em SQLite: `_id`, `productId`, `quantity`, `unitCost`, `totalCost`, `purchasedAt`, `createdAt`, `updatedAt`.
+- [x] Ajustar tabela `products` para ter `quantity` (já criado) e preparar índices.
+- [x] Implementar funções no DB/repository:
   - `createPurchase(purchaseData)` que grava compra e incrementa estoque.
   - `getPurchases()` / `getPurchasesByProduct(productId)`.
   - `decrementStock(productId, amount)` para uso em vendas.
-- [ ] Adicionar validação Yup para compras (quantidade > 0, custo > 0).
+- [x] Adicionar validação Yup para compras (quantidade > 0, custo > 0).
 
 ### Etapa 2 — UI e fluxo de compras
-- [ ] Nova tela/modal “Registrar Compra” acessível a partir de Produtos.
-- [ ] Form com seleção de produto, quantidade, custo unitário; mostra custo total.
-- [ ] Ao confirmar: chama `createPurchase` e atualiza estoque e lista de produtos.
+- [x] Nova tela/modal “Registrar Compra” acessível a partir de Produtos.
+- [x] Form com seleção de produto, quantidade, custo unitário; mostra custo total.
+- [x] Ao confirmar: chama `createPurchase` e atualiza estoque e lista de produtos.
 - [ ] Lista de compras (histórico) opcional na mesma tela ou seção separada.
 
 ### Etapa 3 — Integração com vendas (pedidos)
-- [ ] No fluxo de pedido, ao confirmar venda: `decrementStock(productId, quantity)`.
-- [ ] Tratar casos de estoque insuficiente: bloquear venda ou permitir negativo com aviso.
-- [ ] Exibir estoque atual no seletor de produtos (para decisão rápida).
+- [x] No fluxo de pedido, ao confirmar venda: `decrementStock(productId, quantity)`.
+- [x] Tratar casos de estoque insuficiente: bloquear venda ou permitir negativo com aviso.
+- [x] Exibir estoque atual no seletor de produtos (para decisão rápida).
 
 ### Etapa 4 — Sync e backup
-- [ ] Sincronizar compras (`purchases`) com Firebase:
+- [x] Sincronizar compras (`purchases`) com Firebase:
   - Serializar compra com `productId`, `quantity`, `unitCost`, `totalCost`, `purchasedAt`, `updated_at`, `_status`.
   - Pull: recriar compras e ajustar estoque (idempotente).
   - Push: enviar compras novas/alteradas/deletadas.

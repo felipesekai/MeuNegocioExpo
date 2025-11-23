@@ -46,6 +46,16 @@ const ensureTables = (() => {
           createdAt INTEGER,
           updatedAt INTEGER
         );
+        CREATE TABLE IF NOT EXISTS purchases (
+          _id TEXT PRIMARY KEY NOT NULL,
+          productId TEXT NOT NULL,
+          quantity INTEGER NOT NULL,
+          unitCost REAL NOT NULL,
+          totalCost REAL NOT NULL,
+          purchasedAt INTEGER,
+          createdAt INTEGER,
+          updatedAt INTEGER
+        );
         `
       )
       .then(async () => {

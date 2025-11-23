@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { productRepository } from '../database/repository';
+import { productRepository, purchaseRepository } from '../database/repository';
 import { withRequest } from '../utils/asyncHandler';
 
 export function useProducts() {
@@ -84,6 +84,21 @@ export function useProducts() {
     [refresh],
   );
 
+  const registerPurchase = useCallback(
+    async (purchaseData) => {
+      setError(null);
+      return withRequest(
+        async () => {
+          await purchaseRepository.save(purchaseData);
+          cacheReady.current = false;
+          await refresh({ force: true });
+        },
+        { setLoading: setMutating, onError: (err) => setError(err) },
+      );
+    },
+    [refresh],
+  );
+
   useEffect(() => {
     refresh();
   }, [refresh]);
@@ -99,5 +114,6 @@ export function useProducts() {
     updateProduct,
     deleteProduct,
     addStock,
+    registerPurchase,
   };
 }

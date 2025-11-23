@@ -172,6 +172,14 @@ export async function createOrder({ clientId, status, products, orderDate }) {
         `INSERT INTO order_products (_id, orderId, productId, quantity, unitPrice, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [orderProductId, orderId, productItem.productId, qty, unitPrice, now, now],
       );
+
+      // Decrement stock
+      const productResult = await tx.getAllAsync(`SELECT quantity FROM products WHERE _id = ?`, [productItem.productId]);
+      if (productResult && productResult.length > 0) {
+        const currentQty = Number(productResult[0].quantity) || 0;
+        const newQty = Math.max(0, currentQty - qty);
+        await tx.runAsync(`UPDATE products SET quantity = ?, updatedAt = ? WHERE _id = ?`, [newQty, now, productItem.productId]);
+      }
     }
 
     await tx.runAsync(`UPDATE orders SET totalAmount = ? WHERE _id = ?`, [calculatedTotal, orderId]);
@@ -279,4 +287,113 @@ export async function getProductsUpdatedSince(timestamp) {
 export async function getOrdersUpdatedSince(timestamp) {
   const rows = await queryAll(`SELECT * FROM orders WHERE updatedAt >= ?`, [timestamp]);
   return rows.map(mapOrderRow);
+}
+
+const mapPurchaseRow = (row) => ({
+  _id: row._id,
+  id: row._id,
+  productId: row.productId,
+  quantity: Number(row.quantity) || 0,
+  unitCost: Number(row.unitCost) || 0,
+  totalCost: Number(row.totalCost) || 0,
+  purchasedAt: mapDate(row.purchasedAt) || mapDate(row.createdAt) || new Date(),
+  createdAt: mapDate(row.createdAt) || undefined,
+  updatedAt: mapDate(row.updatedAt) || undefined,
+});
+
+export async function createPurchase(purchaseData) {
+  const purchaseId = purchaseData._id || generateId();
+  const now = Date.now();
+  const purchasedAt = toMillis(purchaseData.purchasedAt, now);
+  const qty = Number(purchaseData.quantity) || 0;
+  const unitCost = Number(purchaseData.unitCost) || 0;
+  const totalCost = qty * unitCost;
+
+  await runInTransaction(async (tx) => {
+    // Insert purchase
+    await tx.runAsync(
+      `INSERT INTO purchases (_id, productId, quantity, unitCost, totalCost, purchasedAt, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [purchaseId, purchaseData.productId, qty, unitCost, totalCost, purchasedAt, now, now]
+    );
+
+    // Update product stock
+    // We need to fetch current quantity first to be safe, or just do a direct update increment
+    // Since we are in a transaction, direct update is safe if we trust the logic.
+    // However, let's stick to the pattern of incrementProductStock but inside this transaction context if possible.
+    // Since runInTransaction provides 'tx', we can't easily call external functions that also try to start transactions or use db.runAsync directly if they don't accept tx.
+    // So we'll implement the update logic here directly.
+
+    // Get current product to ensure it exists and get current qty
+    const productResult = await tx.getAllAsync(`SELECT quantity FROM products WHERE _id = ?`, [purchaseData.productId]);
+    if (productResult && productResult.length > 0) {
+      const currentQty = Number(productResult[0].quantity) || 0;
+      const newQty = currentQty + qty;
+      await tx.runAsync(`UPDATE products SET quantity = ?, updatedAt = ? WHERE _id = ?`, [newQty, now, purchaseData.productId]);
+    }
+  });
+
+  return getPurchaseById(purchaseId);
+}
+
+export async function getPurchaseById(purchaseId) {
+  const row = await queryFirst(`SELECT * FROM purchases WHERE _id = ? LIMIT 1`, [purchaseId]);
+  return row ? mapPurchaseRow(row) : null;
+}
+
+export async function getPurchases(productId) {
+  let sql = `SELECT * FROM purchases`;
+  const params = [];
+  if (productId) {
+    sql += ` WHERE productId = ?`;
+    params.push(productId);
+  }
+  sql += ` ORDER BY purchasedAt DESC`;
+  const rows = await queryAll(sql, params);
+  return rows.map(mapPurchaseRow);
+}
+
+export async function decrementStock(productId, amount) {
+  const now = Date.now();
+  await runInTransaction(async (tx) => {
+    const productResult = await tx.getAllAsync(`SELECT quantity FROM products WHERE _id = ?`, [productId]);
+    if (productResult && productResult.length > 0) {
+      const currentQty = Number(productResult[0].quantity) || 0;
+      const newQty = Math.max(0, currentQty - amount); // Prevent negative stock? Or allow it? Plan says "block or allow negative". Let's allow negative for now or stick to 0? Plan says "allow negative with warning". For DB, let's just do math.
+      // Actually, let's clamp to 0 for safety unless specified otherwise, but "allow negative" implies we shouldn't clamp.
+      // Let's stick to simple subtraction.
+      const finalQty = currentQty - amount;
+      await tx.runAsync(`UPDATE products SET quantity = ?, updatedAt = ? WHERE _id = ?`, [finalQty, now, productId]);
+    }
+  });
+}
+
+export async function getPurchasesUpdatedSince(timestamp) {
+  const rows = await queryAll(`SELECT * FROM purchases WHERE updatedAt >= ?`, [timestamp]);
+  return rows.map(mapPurchaseRow);
+}
+
+export async function savePurchaseRecord(purchaseData) {
+  const purchaseId = purchaseData._id || generateId();
+  const existing = await getPurchaseById(purchaseId);
+  const now = Date.now();
+  const purchasedAt = toMillis(purchaseData.purchasedAt, existing?.purchasedAt?.getTime() ?? now);
+  const createdAt = toMillis(purchaseData.createdAt, existing?.createdAt?.getTime() ?? now);
+  const updatedAt = toMillis(purchaseData.updatedAt, now);
+  const qty = Number(purchaseData.quantity) || 0;
+  const unitCost = Number(purchaseData.unitCost) || 0;
+  const totalCost = Number(purchaseData.totalCost) || (qty * unitCost);
+
+  if (existing) {
+    await executeSql(
+      `UPDATE purchases SET productId = ?, quantity = ?, unitCost = ?, totalCost = ?, purchasedAt = ?, updatedAt = ? WHERE _id = ?`,
+      [purchaseData.productId, qty, unitCost, totalCost, purchasedAt, updatedAt, purchaseId]
+    );
+  } else {
+    await executeSql(
+      `INSERT INTO purchases (_id, productId, quantity, unitCost, totalCost, purchasedAt, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [purchaseId, purchaseData.productId, qty, unitCost, totalCost, purchasedAt, createdAt, updatedAt]
+    );
+  }
+
+  return getPurchaseById(purchaseId);
 }

@@ -9,7 +9,7 @@ const ListWrapper = styled.View`
   padding: 8px 12px;
 `;
 
-const FlatListProducts = ({ products, openEdit, itemEdit, handlerDelete, handlerStock }) => {
+const FlatListProducts = ({ products, openEdit, itemEdit, handlerDelete, handlerStock, handlerHistory }) => {
   const handlerEdit = (item) => {
     openEdit(true);
     itemEdit({ ...item, id: item._id });
@@ -22,7 +22,9 @@ const FlatListProducts = ({ products, openEdit, itemEdit, handlerDelete, handler
         data={products}
         keyExtractor={(item) => item._id}
         ListEmptyComponent={<ListEmpty message="Nenhum produto cadastrado." />}
-        renderItem={({ item }) => <CardProducts editItem={handlerEdit} itens={item} itemDelete={handlerDelete} onAddStock={handlerStock} />}
+        renderItem={({ item }) => (
+          <CardProducts editItem={handlerEdit} itens={item} itemDelete={handlerDelete} onAddStock={handlerStock} onHistory={handlerHistory} />
+        )}
         contentContainerStyle={{ paddingBottom: 12 }}
       />
     </ListWrapper>

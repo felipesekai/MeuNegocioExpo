@@ -90,6 +90,28 @@ export async function getFBUpdatedOrders(userId, timestamp) {
     return snapshot.val();
 }
 
+// ========== Purchase ==========
+export function upsertPurchase(userId, purchase) {
+    const db = getDatabase();
+    const purchaseRef = ref(db, `users/${userId}/purchases/${purchase.id}`);
+    return set(purchaseRef, {
+        productId: purchase.productId,
+        quantity: purchase.quantity,
+        unitCost: purchase.unitCost,
+        totalCost: purchase.totalCost,
+        purchasedAt: purchase.purchasedAt,
+        updated_at: purchase.updated_at,
+        _status: purchase._status
+    });
+}
+export async function getFBUpdatedPurchases(userId, timestamp) {
+    const db = getDatabase();
+    const purchasesRef = ref(db, `users/${userId}/purchases/`);
+    const q = query(purchasesRef, orderByChild('updated_at'), startAt(timestamp));
+    const snapshot = await get(q);
+    return snapshot.val();
+}
+
 // ========== Auth ==========
 export function signInWithGoogle() {
     const provider = new GoogleAuthProvider();
