@@ -19,10 +19,22 @@ export const productRepository = {
 };
 
 export const purchaseRepository = {
+  // Legacy single-item purchase functions
   save: repo.createPurchase,
   saveRecord: repo.savePurchaseRecord,
   getAllByProduct: repo.getPurchases,
   updatedSince: repo.getPurchasesUpdatedSince,
+
+  // New batch functions
+  createBatch: repo.createPurchaseBatch,
+  getAllBatches: repo.getAllPurchaseBatches,
+  getBatchById: repo.getPurchaseBatchById,
+  getItemsByBatch: repo.getPurchaseItemsByBatchId,
+  deleteBatch: repo.deletePurchaseBatch,
+  batchesUpdatedSince: repo.getPurchaseBatchesUpdatedSince,
+  itemsUpdatedSince: repo.getPurchaseItemsUpdatedSince,
+  saveBatchRecord: repo.savePurchaseBatchRecord,
+  saveItemRecord: repo.savePurchaseItemRecord,
 };
 
 export const orderRepository = {

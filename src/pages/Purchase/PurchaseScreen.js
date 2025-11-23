@@ -1,183 +1,190 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Button } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import Header from '../../components/Header';
-import { purchaseRepository, productRepository } from '../../database/repository';
-import { useNavigation } from '@react-navigation/native';
-import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
-import FloatingButton, { Icons } from '../../components/FloatingButton';
-import PurchaseModal from './PurchaseModal';
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import { Modal, TouchableOpacity, Alert, Text, View, StyleSheet } from 'react-native';
+import { Icons } from '../../components/FloatingButton';
+import { Background } from '../../utils/Style';
+import FlatListProducts from './FlatListProducts';
+import { Form } from '@unform/mobile';
+import { format } from 'date-fns';
+import DatePicker from '../../components/DatePicker/index';
+import { AuthContext } from '../../contexts/auth';
+import { Platform } from 'react-native';
 import { useProducts } from '../../hooks/useProducts';
+import { usePurchases } from '../../hooks/usePurchases';
+import { confirmDialog } from '../../utils/dialogs';
 import LoaderOverlay from '../../components/LoaderOverlay';
 
-export default function PurchaseScreen() {
-  const [purchases, setPurchases] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [productMap, setProductMap] = useState({});
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [purchaseModalVisible, setPurchaseModalVisible] = useState(false);
-  const [selectedProductForPurchase, setSelectedProductForPurchase] = useState(null);
-  const navigation = useNavigation();
-  const { registerPurchase, mutating } = useProducts();
-
-  const loadData = async (productId = null) => {
-    const [purchaseData, productData] = await Promise.all([
-      purchaseRepository.getAllByProduct(productId),
-      productRepository.getAll(),
-    ]);
-
-    const productMap = productData.reduce((acc, product) => {
-      acc[product._id] = product.name;
-      return acc;
-    }, {});
-
-    setPurchases(purchaseData);
-    setProducts(productData);
-    setProductMap(productMap);
-  };
+const PurchaseScreen = ({ onClose }) => {
+  const formRef = useRef(null);
+  const [products, setProducts] = useState([]); // selected products with quantity and cost
+  const { products: allProducts, refresh: refreshProducts } = useProducts();
+  const { createBatch, mutating } = usePurchases();
+  const [datePickerStatus, setDatePickerStatus] = useState(false);
+  const [date, setDate] = useState(new Date());
+  const [dateformat, setDateformat] = useState(format(new Date(), 'dd/MM/yyyy'));
+  const [total, setTotal] = useState(0);
+  const { theme } = useContext(AuthContext);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      loadData(selectedProduct);
-    });
+    refreshProducts();
+  }, [refreshProducts]);
 
-    return unsubscribe;
-  }, [navigation, selectedProduct]);
+  useEffect(() => {
+    if (products.length > 0) {
+      let _aux = 0;
+      products.forEach((product) => {
+        _aux += parseFloat(product.quantity * product.unitCost) || 0;
+      });
+      setTotal(_aux);
+    } else {
+      setTotal(0);
+    }
+  }, [products]);
 
-  const handleProductChange = (productId) => {
-    setSelectedProduct(productId);
-    loadData(productId);
-  };
+  function handleSelectDate(selectedDate) {
+    setDatePickerStatus(Platform.OS === 'ios');
+    if (selectedDate === null) {
+      return;
+    }
+    setDate(selectedDate);
+    setDateformat(format(selectedDate, 'dd/MM/yyyy'));
+  }
 
-  const handleExport = async () => {
-    const header = 'Produto,Quantidade,Custo Unitário,Custo Total,Data\n';
-    const rows = purchases.map(p =>
-      `${productMap[p.productId]},${p.quantity},${p.unitCost.toFixed(2)},${p.totalCost.toFixed(2)},${new Date(p.purchasedAt).toLocaleDateString()}`
-    ).join('\n');
+  async function handleSubmitForm() {
+    const purchaseProductsForDB = products
+      .filter((item) => item.quantity > 0)
+      .map((p) => ({
+        productId: p._id,
+        quantity: p.quantity,
+        unitCost: p.unitCost,
+      }));
 
-    const csv = header + rows;
-    const filename = FileSystem.documentDirectory + 'compras.csv';
-    await FileSystem.writeAsStringAsync(filename, csv);
-    await Sharing.shareAsync(filename);
-  };
-
-  const handleOpenPurchaseModal = () => {
-    // If a product is selected in the filter, use it; otherwise, use the first product
-    const productToUse = selectedProduct
-      ? products.find(p => p._id === selectedProduct)
-      : products[0];
-
-    if (!productToUse) {
-      alert('Nenhum produto disponível. Cadastre produtos primeiro.');
+    if (purchaseProductsForDB.length === 0) {
+      alert('Nenhum produto selecionado. Adicione quantidade e custo aos produtos.');
       return;
     }
 
-    setSelectedProductForPurchase(productToUse);
-    setPurchaseModalVisible(true);
-  };
+    const summary = purchaseProductsForDB
+      .map((item) => {
+        const originalProduct = products.find((p) => p._id === item.productId);
+        return `${originalProduct ? originalProduct.name : 'Produto'} ${item.quantity} x R$ ${item.unitCost.toFixed(2)}`;
+      })
+      .join('\n');
 
-  const handleRegisterPurchase = async (purchaseData) => {
-    try {
-      await registerPurchase(purchaseData);
-      alert('Compra registrada com sucesso!');
-      setPurchaseModalVisible(false);
-      loadData(selectedProduct); // Reload data to show new purchase
-    } catch (error) {
-      alert('Erro ao registrar compra!');
-      console.log(error);
-    }
-  };
-
-  const renderItem = ({ item }) => (
-    <View style={styles.itemContainer}>
-      <Text style={styles.productName}>{productMap[item.productId] || 'Produto não encontrado'}</Text>
-      <Text style={styles.itemText}>Quantidade: {item.quantity}</Text>
-      <Text style={styles.itemText}>Custo Unitário: R$ {item.unitCost.toFixed(2)}</Text>
-      <Text style={styles.itemText}>Custo Total: R$ {item.totalCost.toFixed(2)}</Text>
-      <Text style={styles.dateText}>Data: {new Date(item.purchasedAt).toLocaleDateString()}</Text>
-    </View>
-  );
+    confirmDialog({
+      title: 'Confirmar Compra?',
+      message: `${summary}\n\nTotal: R$ ${total.toFixed(2)}`,
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      onConfirm: async () => {
+        try {
+          await createBatch(purchaseProductsForDB, date);
+          Alert.alert('Compra registrada!', '', [
+            {
+              text: 'ok',
+              onPress: () => onClose(),
+              style: 'cancel',
+            },
+          ]);
+        } catch (err) {
+          alert(err.message || 'Erro ao registrar compra');
+        }
+      },
+    });
+  }
 
   return (
-    <View style={styles.container}>
-      <Header title="Histórico de Compras" />
-      <View style={styles.filterContainer}>
-        <Picker
-          selectedValue={selectedProduct}
-          onValueChange={(itemValue) => handleProductChange(itemValue)}
-          style={styles.picker}
-        >
-          <Picker.Item label="Todos os produtos" value={null} />
-          {products.map((product) => (
-            <Picker.Item key={product._id} label={product.name} value={product._id} />
-          ))}
-        </Picker>
-        <Button title="Exportar CSV" onPress={handleExport} />
-      </View>
-      <FlatList
-        data={purchases}
-        renderItem={renderItem}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.list}
-      />
+    <Modal animationType="slide" onRequestClose={onClose}>
+      <Background>
+        <View style={styles.headerBackground}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => onClose()}>
+              {Icons('arrow-back', 30, theme.backgroundColor)}
+            </TouchableOpacity>
+            <Text style={[styles.title, { color: theme.backgroundColor }]}>
+              {total > 0 ? `Total: R$ ${total.toFixed(2)}` : 'Nova Compra'}
+            </Text>
+            <TouchableOpacity
+              style={styles.okButton}
+              onPress={() => formRef.current?.submitForm()}
+              accessibilityRole="button"
+              accessibilityLabel="OK"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={[styles.okText, { color: theme.backgroundColor }]}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
-      <FloatingButton
-        onClick={handleOpenPurchaseModal}
-        icon={Icons('addchart', 30, 'white')}
-        accessibilityLabel="Registrar compra"
-      />
+        <View style={styles.container}>
+          <Form style={{ flex: 1 }} ref={formRef} onSubmit={handleSubmitForm}>
+            <View style={styles.dateContainer}>
+              <TouchableOpacity onPress={() => setDatePickerStatus(true)} style={styles.dateButton}>
+                <Text style={styles.dateLabel}>Data da Compra:</Text>
+                <Text style={styles.dateValue}>{dateformat}</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatListProducts products={allProducts} list={products} setList={setProducts} />
+          </Form>
+        </View>
 
-      <PurchaseModal
-        visible={purchaseModalVisible}
-        onClose={setPurchaseModalVisible}
-        onConfirm={handleRegisterPurchase}
-        product={selectedProductForPurchase}
-        loading={mutating}
-      />
-
-      <LoaderOverlay visible={mutating} />
-    </View>
+        {datePickerStatus && <DatePicker date={date} onChange={handleSelectDate} onClose={setDatePickerStatus} />}
+        <LoaderOverlay visible={mutating} />
+      </Background>
+    </Modal>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
+  headerBackground: {
+    backgroundColor: '#3b3dbf',
+    paddingTop: 40,
   },
-  filterContainer: {
-    paddingHorizontal: 10,
-    paddingTop: 10,
-    backgroundColor: '#fff',
-    paddingBottom: 10,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  picker: {
-    height: 50,
-    width: '100%',
-  },
-  list: {
-    padding: 10,
-  },
-  itemContainer: {
-    backgroundColor: '#fff',
-    padding: 15,
-    marginBottom: 10,
-    borderRadius: 8,
-    elevation: 3,
-  },
-  productName: {
+  title: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5,
+    flex: 1,
+    textAlign: 'center',
   },
-  itemText: {
+  okButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  okText: {
+    fontWeight: 'bold',
     fontSize: 16,
-    color: '#333',
   },
-  dateText: {
+  container: {
+    flex: 1,
+  },
+  dateContainer: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dateLabel: {
     fontSize: 14,
     color: '#666',
-    marginTop: 5,
+    fontWeight: '600',
+  },
+  dateValue: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: 'bold',
   },
 });
+
+export default PurchaseScreen;

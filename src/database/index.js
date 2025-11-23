@@ -429,3 +429,159 @@ export async function savePurchaseRecord(purchaseData) {
 
   return getPurchaseById(purchaseId);
 }
+// Purchase Batch and Items Functions
+
+const mapPurchaseBatchRow = (row) => ({
+    _id: row._id,
+    id: row._id,
+    totalAmount: Number(row.totalAmount) || 0,
+    purchasedAt: mapDate(row.purchasedAt) || mapDate(row.createdAt) || new Date(),
+    createdAt: mapDate(row.createdAt) || undefined,
+    updatedAt: mapDate(row.updatedAt) || undefined,
+});
+
+const mapPurchaseItemRow = (row) => ({
+    _id: row._id,
+    id: row._id,
+    batchId: row.batchId,
+    productId: row.productId,
+    quantity: Number(row.quantity) || 0,
+    unitCost: Number(row.unitCost) || 0,
+    createdAt: mapDate(row.createdAt) || undefined,
+    updatedAt: mapDate(row.updatedAt) || undefined,
+});
+
+export async function createPurchaseBatch({ products, purchasedAt }) {
+    const batchId = generateId();
+    const now = Date.now();
+    const purchasedAtMs = toMillis(purchasedAt, now);
+    let calculatedTotal = 0;
+
+    await runInTransaction(async (tx) => {
+        // Insert batch header
+        await tx.runAsync(
+            `INSERT INTO purchase_batches (_id, totalAmount, purchasedAt, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)`,
+            [batchId, 0, purchasedAtMs, now, now]
+        );
+
+        // Insert items and update stock
+        for (const productItem of products) {
+            const itemId = generateId();
+            const qty = Number(productItem.quantity) || 0;
+            const unitCost = Number(productItem.unitCost) || 0;
+            calculatedTotal += qty * unitCost;
+
+            await tx.runAsync(
+                `INSERT INTO purchase_items (_id, batchId, productId, quantity, unitCost, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [itemId, batchId, productItem.productId, qty, unitCost, now, now]
+            );
+
+            // Increment stock
+            const productResult = await tx.getAllAsync(`SELECT quantity FROM products WHERE _id = ?`, [productItem.productId]);
+            if (productResult && productResult.length > 0) {
+                const currentQty = Number(productResult[0].quantity) || 0;
+                const newQty = currentQty + qty;
+                await tx.runAsync(`UPDATE products SET quantity = ?, updatedAt = ? WHERE _id = ?`, [newQty, now, productItem.productId]);
+            }
+        }
+
+        // Update batch total
+        await tx.runAsync(`UPDATE purchase_batches SET totalAmount = ? WHERE _id = ?`, [calculatedTotal, batchId]);
+    });
+
+    return getPurchaseBatchById(batchId);
+}
+
+export async function getPurchaseBatchById(batchId) {
+    const row = await queryFirst(`SELECT * FROM purchase_batches WHERE _id = ? LIMIT 1`, [batchId]);
+    return row ? mapPurchaseBatchRow(row) : null;
+}
+
+export async function getAllPurchaseBatches() {
+    const rows = await queryAll(`SELECT * FROM purchase_batches ORDER BY purchasedAt DESC`);
+    return rows.map(mapPurchaseBatchRow);
+}
+
+export async function getPurchaseItemsByBatchId(batchId) {
+    const rows = await queryAll(`SELECT * FROM purchase_items WHERE batchId = ?`, [batchId]);
+    return rows.map(mapPurchaseItemRow);
+}
+
+export async function deletePurchaseBatch(batchId) {
+    const items = await getPurchaseItemsByBatchId(batchId);
+    await runInTransaction(async (tx) => {
+        const now = Date.now();
+
+        // Revert stock for each item
+        for (const item of items) {
+            const productResult = await tx.getAllAsync(`SELECT quantity FROM products WHERE _id = ?`, [item.productId]);
+            if (productResult && productResult.length > 0) {
+                const currentQty = Number(productResult[0].quantity) || 0;
+                const newQty = currentQty - item.quantity;
+                await tx.runAsync(`UPDATE products SET quantity = ?, updatedAt = ? WHERE _id = ?`, [newQty, now, item.productId]);
+            }
+        }
+
+        // Delete items and batch
+        await tx.runAsync(`DELETE FROM purchase_items WHERE batchId = ?`, [batchId]);
+        await tx.runAsync(`DELETE FROM purchase_batches WHERE _id = ?`, [batchId]);
+    });
+}
+
+export async function getPurchaseBatchesUpdatedSince(timestamp) {
+    const rows = await queryAll(`SELECT * FROM purchase_batches WHERE updatedAt >= ?`, [timestamp]);
+    return rows.map(mapPurchaseBatchRow);
+}
+
+export async function getPurchaseItemsUpdatedSince(timestamp) {
+    const rows = await queryAll(`SELECT * FROM purchase_items WHERE updatedAt >= ?`, [timestamp]);
+    return rows.map(mapPurchaseItemRow);
+}
+
+export async function savePurchaseBatchRecord(batchData) {
+    const batchId = batchData._id || generateId();
+    const existing = await getPurchaseBatchById(batchId);
+    const now = Date.now();
+    const purchasedAt = toMillis(batchData.purchasedAt, existing?.purchasedAt?.getTime() ?? now);
+    const createdAt = toMillis(batchData.createdAt, existing?.createdAt?.getTime() ?? now);
+    const updatedAt = toMillis(batchData.updatedAt, now);
+    const totalAmount = Number(batchData.totalAmount) || 0;
+
+    if (existing) {
+        await executeSql(
+            `UPDATE purchase_batches SET totalAmount = ?, purchasedAt = ?, updatedAt = ? WHERE _id = ?`,
+            [totalAmount, purchasedAt, updatedAt, batchId]
+        );
+    } else {
+        await executeSql(
+            `INSERT INTO purchase_batches (_id, totalAmount, purchasedAt, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)`,
+            [batchId, totalAmount, purchasedAt, createdAt, updatedAt]
+        );
+    }
+
+    return getPurchaseBatchById(batchId);
+}
+
+export async function savePurchaseItemRecord(itemData) {
+    const itemId = itemData._id || generateId();
+    const existing = await queryFirst(`SELECT * FROM purchase_items WHERE _id = ? LIMIT 1`, [itemId]);
+    const now = Date.now();
+    const createdAt = toMillis(itemData.createdAt, existing?.createdAt ?? now);
+    const updatedAt = toMillis(itemData.updatedAt, now);
+    const qty = Number(itemData.quantity) || 0;
+    const unitCost = Number(itemData.unitCost) || 0;
+
+    if (existing) {
+        await executeSql(
+            `UPDATE purchase_items SET batchId = ?, productId = ?, quantity = ?, unitCost = ?, updatedAt = ? WHERE _id = ?`,
+            [itemData.batchId, itemData.productId, qty, unitCost, updatedAt, itemId]
+        );
+    } else {
+        await executeSql(
+            `INSERT INTO purchase_items (_id, batchId, productId, quantity, unitCost, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [itemId, itemData.batchId, itemData.productId, qty, unitCost, createdAt, updatedAt]
+        );
+    }
+
+    return queryFirst(`SELECT * FROM purchase_items WHERE _id = ? LIMIT 1`, [itemId]).then(row => row ? mapPurchaseItemRow(row) : null);
+}

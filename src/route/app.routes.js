@@ -4,7 +4,7 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import Home from '../pages/Home/HomeScreen';
 import Client from '../pages/Client/ClientScreen';
 import Product from '../pages/Product/ProductScreen';
-import Purchase from '../pages/Purchase/PurchaseScreen';
+import Purchase from '../pages/Purchase/PurchaseHistoryScreen';
 import Account from '../pages/Account/AccountScreen';
 import CustomDrawer from '../components/CustomDrawer';
 import Icon from '@expo/vector-icons/MaterialIcons';
@@ -16,15 +16,15 @@ export default function route() {
 
   return (
     <Drawer.Navigator
-      drawerContent = {(props)=> <CustomDrawer {...props} />}
-      
+      drawerContent={(props) => <CustomDrawer {...props} />}
+
       screenOptions={
         {
           headerShown: false,
           drawerActiveBackgroundColor: '#FFD700',
           drawerActiveTintColor: '#000',
           drawerInactiveBackgroundColor: '#F0E68C',
-          headerBackground : '#ddd',
+          headerBackground: '#ddd',
           drawerStyle: {
             backgroundColor: '#F5F5DC'
           }
@@ -37,25 +37,25 @@ export default function route() {
       <Drawer.Screen
         name="Home"
         component={Home}
-        options={{                   
-          drawerIcon:((color, size) => <Icon name='home' color={color} size={16}/>),
+        options={{
+          drawerIcon: ((color, size) => <Icon name='home' color={color} size={16} />),
         }}
       />
       <Drawer.Screen
         name="Client"
         component={Client}
         options={{
-          title: 'Clientes',          
-          drawerIcon:((color, size) => <Icon name='person' color={color} size={16}/>),
+          title: 'Clientes',
+          drawerIcon: ((color, size) => <Icon name='person' color={color} size={16} />),
         }}
-      />  
+      />
       <Drawer.Screen
         name="Product"
         component={Product}
         options={{
           title: 'Produtos',
-          drawerIcon:((color, size) => <Icon name='receipt-long' color={color} size={16}/>),
-         
+          drawerIcon: ((color, size) => <Icon name='receipt-long' color={color} size={16} />),
+
         }}
       />
       <Drawer.Screen
@@ -63,7 +63,7 @@ export default function route() {
         component={Purchase}
         options={{
           title: 'Compras',
-          drawerIcon:((color, size) => <Icon name='shopping-cart' color={color} size={16}/>),
+          drawerIcon: ((color, size) => <Icon name='shopping-cart' color={color} size={16} />),
         }}
       />
       <Drawer.Screen
@@ -71,7 +71,7 @@ export default function route() {
         component={Account}
         options={{
           title: 'Conta e Backup',
-          drawerIcon:((color, size) => <Icon name='cloud-upload' color={color} size={16}/>),
+          drawerIcon: ((color, size) => <Icon name='cloud-upload' color={color} size={16} />),
         }}
       />
     </Drawer.Navigator>);

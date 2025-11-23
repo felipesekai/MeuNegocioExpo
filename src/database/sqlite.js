@@ -56,6 +56,22 @@ const ensureTables = (() => {
           createdAt INTEGER,
           updatedAt INTEGER
         );
+        CREATE TABLE IF NOT EXISTS purchase_batches (
+          _id TEXT PRIMARY KEY NOT NULL,
+          totalAmount REAL NOT NULL,
+          purchasedAt INTEGER,
+          createdAt INTEGER,
+          updatedAt INTEGER
+        );
+        CREATE TABLE IF NOT EXISTS purchase_items (
+          _id TEXT PRIMARY KEY NOT NULL,
+          batchId TEXT NOT NULL,
+          productId TEXT NOT NULL,
+          quantity INTEGER NOT NULL,
+          unitCost REAL NOT NULL,
+          createdAt INTEGER,
+          updatedAt INTEGER
+        );
         `
       )
       .then(async () => {
@@ -65,6 +81,41 @@ const ensureTables = (() => {
         if (!hasQuantity) {
           await db.execAsync(`ALTER TABLE products ADD COLUMN quantity INTEGER DEFAULT 0;`);
         }
+
+        // Migrate existing purchases to new structure
+        const batchesTableInfo = await db.getAllAsync(`PRAGMA table_info(purchase_batches);`);
+        const itemsTableInfo = await db.getAllAsync(`PRAGMA table_info(purchase_items);`);
+
+        if (batchesTableInfo.length > 0 && itemsTableInfo.length > 0) {
+          // Check if migration is needed
+          const existingPurchases = await db.getAllAsync(`SELECT * FROM purchases`);
+          const existingBatches = await db.getAllAsync(`SELECT * FROM purchase_batches`);
+
+          // Only migrate if we have old purchases but no batches
+          if (existingPurchases.length > 0 && existingBatches.length === 0) {
+            console.log('Migrating existing purchases to new structure...');
+
+            for (const purchase of existingPurchases) {
+              const batchId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+              const itemId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+              // Create batch for this single purchase
+              await db.runAsync(
+                `INSERT INTO purchase_batches (_id, totalAmount, purchasedAt, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)`,
+                [batchId, purchase.totalCost, purchase.purchasedAt, purchase.createdAt, purchase.updatedAt]
+              );
+
+              // Create item
+              await db.runAsync(
+                `INSERT INTO purchase_items (_id, batchId, productId, quantity, unitCost, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                [itemId, batchId, purchase.productId, purchase.quantity, purchase.unitCost, purchase.createdAt, purchase.updatedAt]
+              );
+            }
+
+            console.log(`Migrated ${existingPurchases.length} purchases to new structure`);
+          }
+        }
+
         return true;
       });
     return initialized;
