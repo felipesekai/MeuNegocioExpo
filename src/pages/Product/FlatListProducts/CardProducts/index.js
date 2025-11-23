@@ -4,7 +4,7 @@ import { alertMenssage } from '../../../../utils/Strings';
 import { Card, Container, Textp, Badge } from './styles';
 import { confirmDialog } from '../../../../utils/dialogs';
 
-const CardProducts = ({ itens: item, editItem, itemDelete, onAddStock, onHistory }) => {
+const CardProducts = ({ itens: item, editItem, itemDelete }) => {
   const getBadgeColor = (qty) => {
     if (qty < 5) return '#ff4444'; // Red
     if (qty < 10) return '#ffbb33'; // Yellow
@@ -39,20 +39,6 @@ const CardProducts = ({ itens: item, editItem, itemDelete, onAddStock, onHistory
           <Badge style={{ backgroundColor: getBadgeColor(item?.quantity ?? 0) }}>
             <Text style={{ color: '#fff', fontWeight: '800' }}>{item?.quantity ?? 0}</Text>
           </Badge>
-          <View style={{ flexDirection: 'row', marginTop: 6 }}>
-            <TouchableOpacity
-              onPress={() => onHistory(item)}
-              style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: '#eee', marginRight: 6 }}
-            >
-              <Text style={{ color: '#333', fontWeight: '700', fontSize: 12 }}>Hist.</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => onAddStock(item)}
-              style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: '#007aff' }}
-            >
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>+ est.</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </Card>
     </Container>

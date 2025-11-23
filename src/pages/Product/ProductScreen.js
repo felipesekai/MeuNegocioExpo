@@ -12,18 +12,13 @@ import { useProducts } from '../../hooks/useProducts';
 import { useFocusEffect } from '@react-navigation/native';
 import LoaderOverlay from '../../components/LoaderOverlay';
 import { confirmDialog } from '../../utils/dialogs';
-import PurchaseModal from './PurchaseModal';
-import PurchaseList from './PurchaseList';
 
 const ProductScreen = () => {
   const [modalNewVisibility, setModalNewVisibility] = useState(false);
   const [modalEditVisibility, setModalEditVisibility] = useState(false);
   const [productEdit, setProductEdit] = useState({});
   const { setLoading } = useContext(AuthContext);
-  const { products, refresh, createProduct, updateProduct, deleteProduct, registerPurchase, loading, mutating } = useProducts();
-  const [purchaseModalVisible, setPurchaseModalVisible] = useState(false);
-  const [purchaseListVisible, setPurchaseListVisible] = useState(false);
-  const [stockTarget, setStockTarget] = useState(null);
+  const { products, refresh, createProduct, updateProduct, deleteProduct, loading, mutating } = useProducts();
 
   useFocusEffect(
     useCallback(() => {
@@ -81,16 +76,7 @@ const ProductScreen = () => {
     });
   }
 
-  async function handleRegisterPurchase(purchaseData) {
-    try {
-      await registerPurchase(purchaseData);
-      alert('Compra registrada com sucesso!');
-      setPurchaseModalVisible(false);
-    } catch (error) {
-      alert('Erro ao registrar compra!');
-      console.log(error);
-    }
-  }
+
 
   return (
     <Background>
@@ -106,14 +92,6 @@ const ProductScreen = () => {
           openEdit={setModalEditVisibility}
           itemEdit={setProductEdit}
           handlerDelete={handlerDeleteProduct}
-          handlerStock={(item) => {
-            setStockTarget(item);
-            setPurchaseModalVisible(true);
-          }}
-          handlerHistory={(item) => {
-            setStockTarget(item);
-            setPurchaseListVisible(true);
-          }}
         />
       </Container>
 
@@ -130,19 +108,7 @@ const ProductScreen = () => {
         </Modal>
       )}
 
-      <PurchaseModal
-        visible={purchaseModalVisible}
-        onClose={setPurchaseModalVisible}
-        onConfirm={handleRegisterPurchase}
-        product={stockTarget}
-        loading={mutating}
-      />
 
-      <PurchaseList
-        visible={purchaseListVisible}
-        onClose={setPurchaseListVisible}
-        product={stockTarget}
-      />
 
       <LoaderOverlay visible={loading || mutating} />
     </Background>
