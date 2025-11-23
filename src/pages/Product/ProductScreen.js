@@ -1,5 +1,5 @@
-import React, { useState, useContext, useCallback } from 'react';
-import { Modal, Alert, TextInput, View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useContext, useCallback, useMemo } from 'react';
+import { Modal, Alert, TextInput, View, StyleSheet } from 'react-native';
 import Header from '../../components/Header';
 import { Container, HeaderList, TextHL } from './styles';
 import { Background } from '../../utils/Style';
@@ -12,11 +12,13 @@ import { useProducts } from '../../hooks/useProducts';
 import { useFocusEffect } from '@react-navigation/native';
 import LoaderOverlay from '../../components/LoaderOverlay';
 import { confirmDialog } from '../../utils/dialogs';
+import Icon from '@expo/vector-icons/MaterialIcons';
 
 const ProductScreen = () => {
   const [modalNewVisibility, setModalNewVisibility] = useState(false);
   const [modalEditVisibility, setModalEditVisibility] = useState(false);
   const [productEdit, setProductEdit] = useState({});
+  const [searchText, setSearchText] = useState('');
   const { setLoading } = useContext(AuthContext);
   const { products, refresh, createProduct, updateProduct, deleteProduct, loading, mutating } = useProducts();
 
@@ -25,6 +27,15 @@ const ProductScreen = () => {
       refresh({ force: true });
     }, [refresh]),
   );
+
+  const filteredProducts = useMemo(() => {
+    if (!searchText.trim()) {
+      return products;
+    }
+    return products.filter((product) =>
+      product.name.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }, [products, searchText]);
 
   async function addNewProduct(product) {
     setLoading(true);
@@ -81,6 +92,25 @@ const ProductScreen = () => {
   return (
     <Background>
       <Header />
+      <View style={styles.searchContainer}>
+        <Icon name="search" size={24} color="#666" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar produto por nome..."
+          value={searchText}
+          onChangeText={setSearchText}
+          placeholderTextColor="#999"
+        />
+        {searchText.length > 0 && (
+          <Icon
+            name="close"
+            size={20}
+            color="#666"
+            style={styles.clearIcon}
+            onPress={() => setSearchText('')}
+          />
+        )}
+      </View>
       <HeaderList>
         <TextHL>Nome</TextHL>
         <TextHL>Quantidade</TextHL>
@@ -88,7 +118,7 @@ const ProductScreen = () => {
       </HeaderList>
       <Container>
         <FlatListProducts
-          products={products}
+          products={filteredProducts}
           openEdit={setModalEditVisibility}
           itemEdit={setProductEdit}
           handlerDelete={handlerDeleteProduct}
@@ -114,5 +144,31 @@ const ProductScreen = () => {
     </Background>
   );
 };
+
+const styles = StyleSheet.create({
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginHorizontal: 10,
+    marginTop: 10,
+    marginBottom: 5,
+    paddingHorizontal: 12,
+    elevation: 2,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#333',
+  },
+  clearIcon: {
+    padding: 4,
+  },
+});
 
 export default ProductScreen;

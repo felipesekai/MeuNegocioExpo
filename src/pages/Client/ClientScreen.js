@@ -1,5 +1,5 @@
-import React, { useState, useContext, useCallback } from 'react';
-import { Modal } from 'react-native';
+import React, { useState, useContext, useCallback, useMemo } from 'react';
+import { Modal, TextInput, View, StyleSheet } from 'react-native';
 import { Background } from '../../utils/Style';
 import Header from '../../components/Header';
 import { Container } from './styles';
@@ -20,6 +20,7 @@ export default function ClientScreen() {
   const [modalVisibility, setModalVisibility] = useState(false);
   const [modalEditVisibility, setModalEditVisibility] = useState(false);
   const [userEdit, setUserEdit] = useState(null);
+  const [searchText, setSearchText] = useState('');
   const { setLoading } = useContext(AuthContext);
   const { clients, refresh, createClient, updateClient, deleteClient, loading, mutating } = useClients();
 
@@ -28,6 +29,15 @@ export default function ClientScreen() {
       refresh({ force: true });
     }, [refresh]),
   );
+
+  const filteredClients = useMemo(() => {
+    if (!searchText.trim()) {
+      return clients;
+    }
+    return clients.filter((client) =>
+      client.name.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }, [clients, searchText]);
 
   function editPerson(person) {
     setUserEdit(person);
@@ -91,7 +101,26 @@ export default function ClientScreen() {
     <Background>
       <Header />
       <Container>
-        <FlatListClients clients={clients} handlerEdit={editPerson} handleDelete={removeClient} />
+        <View style={styles.searchContainer}>
+          <Icon name="search" size={24} color="#666" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar cliente por nome..."
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholderTextColor="#999"
+          />
+          {searchText.length > 0 && (
+            <Icon
+              name="close"
+              size={20}
+              color="#666"
+              style={styles.clearIcon}
+              onPress={() => setSearchText('')}
+            />
+          )}
+        </View>
+        <FlatListClients clients={filteredClients} handlerEdit={editPerson} handleDelete={removeClient} />
       </Container>
 
       {modalVisibility && (
@@ -113,3 +142,28 @@ export default function ClientScreen() {
     </Background>
   );
 }
+
+const styles = StyleSheet.create({
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginHorizontal: 10,
+    marginVertical: 10,
+    paddingHorizontal: 12,
+    elevation: 2,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#333',
+  },
+  clearIcon: {
+    padding: 4,
+  },
+});

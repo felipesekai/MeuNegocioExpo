@@ -8,11 +8,12 @@ import Purchase from '../pages/Purchase/PurchaseHistoryScreen';
 import Account from '../pages/Account/AccountScreen';
 import CustomDrawer from '../components/CustomDrawer';
 import Icon from '@expo/vector-icons/MaterialIcons';
+import { useTheme } from 'styled-components';
 
 const Drawer = createDrawerNavigator();
 
 export default function route() {
-
+  const theme = useTheme();
 
   return (
     <Drawer.Navigator
@@ -21,12 +22,13 @@ export default function route() {
       screenOptions={
         {
           headerShown: false,
-          drawerActiveBackgroundColor: '#FFD700',
-          drawerActiveTintColor: '#000',
-          drawerInactiveBackgroundColor: '#F0E68C',
-          headerBackground: '#ddd',
+          drawerActiveBackgroundColor: theme.primaryColor,
+          drawerActiveTintColor: theme.textOnPrimary,
+          drawerInactiveBackgroundColor: theme.surfaceColor,
+          drawerInactiveTintColor: theme.textColor,
+          headerBackground: theme.surfaceColor,
           drawerStyle: {
-            backgroundColor: '#F5F5DC'
+            backgroundColor: theme.backgroundColor
           }
 
         }
@@ -76,4 +78,3 @@ export default function route() {
       />
     </Drawer.Navigator>);
 }
-
