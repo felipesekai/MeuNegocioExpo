@@ -112,6 +112,48 @@ export async function getFBUpdatedPurchases(userId, timestamp) {
     return snapshot.val();
 }
 
+// ========== Purchase Batches ==========
+export function upsertPurchaseBatch(userId, batch) {
+    const db = getDatabase();
+    const batchRef = ref(db, `users/${userId}/purchase_batches/${batch.id}`);
+    return set(batchRef, {
+        totalAmount: batch.totalAmount,
+        purchasedAt: batch.purchasedAt,
+        updated_at: batch.updated_at,
+        _status: batch._status
+    });
+}
+
+export async function getFBUpdatedPurchaseBatches(userId, timestamp) {
+    const db = getDatabase();
+    const batchesRef = ref(db, `users/${userId}/purchase_batches/`);
+    const q = query(batchesRef, orderByChild('updated_at'), startAt(timestamp));
+    const snapshot = await get(q);
+    return snapshot.val();
+}
+
+// ========== Purchase Items ==========
+export function upsertPurchaseItem(userId, item) {
+    const db = getDatabase();
+    const itemRef = ref(db, `users/${userId}/purchase_items/${item.id}`);
+    return set(itemRef, {
+        batchId: item.batchId,
+        productId: item.productId,
+        quantity: item.quantity,
+        unitCost: item.unitCost,
+        updated_at: item.updated_at,
+        _status: item._status
+    });
+}
+
+export async function getFBUpdatedPurchaseItems(userId, timestamp) {
+    const db = getDatabase();
+    const itemsRef = ref(db, `users/${userId}/purchase_items/`);
+    const q = query(itemsRef, orderByChild('updated_at'), startAt(timestamp));
+    const snapshot = await get(q);
+    return snapshot.val();
+}
+
 // ========== Auth ==========
 export function signInWithGoogle() {
     const provider = new GoogleAuthProvider();

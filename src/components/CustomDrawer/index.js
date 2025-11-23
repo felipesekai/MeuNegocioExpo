@@ -12,7 +12,7 @@ export default function CustomDrawer(props) {
     <DrawerContentScrollView {...props}>
       <View style={{ marginTop: 25, alignItems: 'center', justifyContent: 'center' }}>
         <Welcome>Bem-vindo</Welcome>
-        <Description>Olǭ, {userName}</Description>
+        <Description>Olá, {userName}</Description>
       </View>
       <DrawerItemList {...props} />
     </DrawerContentScrollView>

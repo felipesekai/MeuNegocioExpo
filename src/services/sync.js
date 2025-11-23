@@ -168,6 +168,44 @@ async function pullChanges(userId, lastSyncedAt) {
       }
     }
   }
+
+  // Pull purchase batches
+  const remoteBatches = (await firebase.getFBUpdatedPurchaseBatches(userId, since)) || {};
+  for (const [batchId, remoteBatch] of Object.entries(remoteBatches)) {
+    if (remoteBatch._status === 'deleted') {
+      // Deletion of batches would require reverting stock, complex logic
+      // For now, skip or implement if needed
+      continue;
+    }
+
+    const updatedAt = toDate(remoteBatch.updated_at);
+
+    await purchaseRepository.saveBatchRecord({
+      _id: batchId,
+      totalAmount: Number(remoteBatch.totalAmount) || 0,
+      purchasedAt: remoteBatch.purchasedAt ? toDate(remoteBatch.purchasedAt) : updatedAt,
+      updatedAt,
+    });
+  }
+
+  // Pull purchase items
+  const remoteItems = (await firebase.getFBUpdatedPurchaseItems(userId, since)) || {};
+  for (const [itemId, remoteItem] of Object.entries(remoteItems)) {
+    if (remoteItem._status === 'deleted') {
+      continue;
+    }
+
+    const updatedAt = toDate(remoteItem.updated_at);
+
+    await purchaseRepository.saveItemRecord({
+      _id: itemId,
+      batchId: remoteItem.batchId,
+      productId: remoteItem.productId,
+      quantity: Number(remoteItem.quantity) || 0,
+      unitCost: Number(remoteItem.unitCost) || 0,
+      updatedAt,
+    });
+  }
 }
 const serializePurchase = (purchase) => ({
   id: purchase._id,
@@ -177,6 +215,24 @@ const serializePurchase = (purchase) => ({
   totalCost: purchase.totalCost,
   purchasedAt: purchase.purchasedAt ? purchase.purchasedAt.getTime() : Date.now(),
   updated_at: purchase.updatedAt ? purchase.updatedAt.getTime() : Date.now(),
+  _status: 'updated',
+});
+
+const serializePurchaseBatch = (batch) => ({
+  id: batch._id,
+  totalAmount: batch.totalAmount,
+  purchasedAt: batch.purchasedAt ? batch.purchasedAt.getTime() : Date.now(),
+  updated_at: batch.updatedAt ? batch.updatedAt.getTime() : Date.now(),
+  _status: 'updated',
+});
+
+const serializePurchaseItem = (item) => ({
+  id: item._id,
+  batchId: item.batchId,
+  productId: item.productId,
+  quantity: item.quantity,
+  unitCost: item.unitCost,
+  updated_at: item.updatedAt ? item.updatedAt.getTime() : Date.now(),
   _status: 'updated',
 });
 
@@ -234,6 +290,18 @@ async function pushChanges(userId, lastSyncedAt) {
   const updatedPurchases = await purchaseRepository.updatedSince(sinceDate.getTime());
   for (const purchase of updatedPurchases) {
     await firebase.upsertPurchase(userId, serializePurchase(purchase));
+  }
+
+  // Push purchase batches
+  const updatedBatches = await purchaseRepository.batchesUpdatedSince(sinceDate.getTime());
+  for (const batch of updatedBatches) {
+    await firebase.upsertPurchaseBatch(userId, serializePurchaseBatch(batch));
+  }
+
+  // Push purchase items
+  const updatedItems = await purchaseRepository.itemsUpdatedSince(sinceDate.getTime());
+  for (const item of updatedItems) {
+    await firebase.upsertPurchaseItem(userId, serializePurchaseItem(item));
   }
 }
 
