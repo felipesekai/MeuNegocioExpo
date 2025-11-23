@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { View, Text, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ActivityIndicator, Alert, Modal, FlatList, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format } from 'date-fns';
 import { Background } from '../../utils/Style';
@@ -22,6 +22,51 @@ const AccountScreen = () => {
     const [isSyncing, setIsSyncing] = useState(false);
     const [lastSync, setLastSync] = useState(null);
     const [isBackingUp, setIsBackingUp] = useState(false);
+    const [showRestoreModal, setShowRestoreModal] = useState(false);
+    const [backups, setBackups] = useState([]);
+
+    async function loadBackups() {
+        try {
+            const folder = `${FileSystem.documentDirectory}backups/`;
+            const dirInfo = await FileSystem.getInfoAsync(folder);
+            if (!dirInfo.exists) {
+                setBackups([]);
+                return;
+            }
+            const files = await FileSystem.readDirectoryAsync(folder);
+            setBackups(files.reverse()); // Show newest first
+        } catch (err) {
+            console.error(err);
+            Alert.alert('Erro', 'Não foi possível listar os backups.');
+        }
+    }
+
+    async function handleRestore(filename) {
+        Alert.alert(
+            'Confirmar Restauração',
+            'Isso substituirá todos os dados atuais pelos do backup. Deseja continuar?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Sim, Restaurar',
+                    onPress: async () => {
+                        try {
+                            const dbPath = `${FileSystem.documentDirectory}SQLite/meunegocio.db`;
+                            const backupPath = `${FileSystem.documentDirectory}backups/${filename}`;
+
+                            await FileSystem.copyAsync({ from: backupPath, to: dbPath });
+
+                            setShowRestoreModal(false);
+                            Alert.alert('Sucesso', 'Backup restaurado! Por favor, reinicie o aplicativo para carregar os dados.');
+                        } catch (err) {
+                            console.error(err);
+                            Alert.alert('Erro', 'Falha ao restaurar o backup.');
+                        }
+                    }
+                }
+            ]
+        );
+    }
 
     async function loadLastSync() {
         const lastSyncTime = await AsyncStorage.getItem('last_synced_at');
@@ -87,28 +132,69 @@ const AccountScreen = () => {
             <Background>
                 <Header />
                 <View style={containerStyle}>
-                    <Text style={{...titleStyle, color: theme.textColor}}>Bem-vindo, {user.name}</Text>
-                    <Text style={{...emailStyle, color: theme.textColor}}>{user.email}</Text>
-                    <Text style={{...syncTextStyle, color: theme.textColor}}>Última sincronização: {lastSync}</Text>
-                    
+                    <Text style={{ ...titleStyle, color: theme.textColor }}>Bem-vindo, {user.name}</Text>
+                    <Text style={{ ...emailStyle, color: theme.textColor }}>{user.email}</Text>
+                    <Text style={{ ...syncTextStyle, color: theme.textColor }}>Última sincronização: {lastSync}</Text>
+
                     <MyButton
                         title={isSyncing ? "Sincronizando..." : "Sincronizar Dados"}
                         onClick={handleSync}
                         disabled={isSyncing}
                     />
-                    <View style={{marginTop: 12}}/>
+                    <View style={{ marginTop: 12 }} />
                     <MyButton
                         title={isBackingUp ? "Gerando backup..." : "Backup Local"}
                         onClick={handleLocalBackup}
                         disabled={isBackingUp || isSyncing}
                     />
-                    <View style={{marginTop: 20}}/>
+                    <View style={{ marginTop: 12 }} />
+                    <MyButton
+                        title="Restaurar Backup"
+                        onClick={() => {
+                            loadBackups();
+                            setShowRestoreModal(true);
+                        }}
+                        disabled={isSyncing || isBackingUp}
+                    />
+                    <View style={{ marginTop: 20 }} />
                     <MyButton
                         title="Sair"
                         onClick={signOut}
                         disabled={isSyncing}
                     />
                 </View>
+
+                <Modal
+                    visible={showRestoreModal}
+                    animationType="slide"
+                    transparent={true}
+                    onRequestClose={() => setShowRestoreModal(false)}
+                >
+                    <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+                        <View style={{ width: '90%', backgroundColor: '#FFF', borderRadius: 10, padding: 20, maxHeight: '80%' }}>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 15, color: '#333' }}>Selecione um Backup</Text>
+                            {backups.length === 0 ? (
+                                <Text style={{ color: '#666', textAlign: 'center', marginVertical: 20 }}>Nenhum backup encontrado.</Text>
+                            ) : (
+                                <FlatList
+                                    data={backups}
+                                    keyExtractor={(item) => item}
+                                    renderItem={({ item }) => (
+                                        <TouchableOpacity
+                                            style={{ padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' }}
+                                            onPress={() => handleRestore(item)}
+                                        >
+                                            <Text style={{ fontSize: 16, color: '#333' }}>{item}</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                />
+                            )}
+                            <View style={{ marginTop: 15 }}>
+                                <MyButton title="Fechar" onClick={() => setShowRestoreModal(false)} />
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
             </Background>
         );
     }
