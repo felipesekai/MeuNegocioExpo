@@ -1,14 +1,15 @@
 import React, { createContext, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
-import { 
-    getUserFromStorage, 
-    insertUser, 
-    saveUserFromStorage, 
-    signInEmail, 
+import {
+    getUserFromStorage,
+    insertUser,
+    saveUserFromStorage,
+    signInEmail,
     signUpEmail,
-    signOutUser 
+    signOutUser
 } from '../services/firebaseService';
 import { getDatabase, onValue, ref } from 'firebase/database';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useTheme } from 'styled-components';
 
 export const AuthContext = createContext({});
@@ -16,17 +17,31 @@ export const AuthContext = createContext({});
 const AuthProvider = ({ children }) => {
     const theme = useTheme();
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // Start loading true to check storage
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function loadStorageData() {
-            const storagedUser = await getUserFromStorage();
-            if (storagedUser) {
-                setUser(JSON.parse(storagedUser));
+        const auth = getAuth();
+
+        // Listen to Firebase auth state changes
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            if (firebaseUser) {
+                // User is signed in with Firebase
+                const storagedUser = await getUserFromStorage();
+                if (storagedUser) {
+                    setUser(JSON.parse(storagedUser));
+                } else {
+                    // Fetch user data from Firebase if not in storage
+                    getUserFromFirebase(firebaseUser);
+                }
+            } else {
+                // User is signed out
+                await saveUserFromStorage(null);
+                setUser(null);
             }
             setLoading(false);
-        }
-        loadStorageData();
+        });
+
+        return () => unsubscribe();
     }, []);
 
     async function signUp(name, email, password) {
@@ -72,7 +87,7 @@ const AuthProvider = ({ children }) => {
         setLoading(true);
         try {
             await signOutUser();
-            await saveUserFromStorage(null); // Clear user from storage
+            await saveUserFromStorage(null);
             setUser(null);
         } catch (error) {
             alert(error.message);
@@ -100,7 +115,7 @@ const AuthProvider = ({ children }) => {
             };
             setUser(data);
             setUserinStorage(data);
-        }, { onlyOnce: true }); // Important to avoid constant listeners
+        }, { onlyOnce: true });
     }
 
     return (
