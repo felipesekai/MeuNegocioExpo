@@ -6,6 +6,7 @@ import Client from '../pages/Client/ClientScreen';
 import Product from '../pages/Product/ProductScreen';
 import Purchase from '../pages/Purchase/PurchaseHistoryScreen';
 import Account from '../pages/Account/AccountScreen';
+import User from '../pages/User/UserScreen';
 import CustomDrawer from '../components/CustomDrawer';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { useTheme } from 'styled-components';
@@ -74,6 +75,14 @@ export default function route() {
         options={{
           title: 'Conta e Backup',
           drawerIcon: ((color, size) => <Icon name='cloud-upload' color={color} size={16} />),
+        }}
+      />
+      <Drawer.Screen
+        name="User"
+        component={User}
+        options={{
+          title: 'Perfil',
+          drawerItemStyle: { display: 'none' },
         }}
       />
     </Drawer.Navigator>);
