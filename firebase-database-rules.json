@@ -1,0 +1,40 @@
+{
+    "rules": {
+        "users": {
+            "$uid": {
+                ".read": "$uid === auth.uid",
+                ".write": "$uid === auth.uid",
+                "clients": {
+                    ".indexOn": [
+                        "updated_at"
+                    ]
+                },
+                "products": {
+                    ".indexOn": [
+                        "updated_at"
+                    ]
+                },
+                "ordered": {
+                    ".indexOn": [
+                        "updated_at"
+                    ]
+                },
+                "purchases": {
+                    ".indexOn": [
+                        "updated_at"
+                    ]
+                },
+                "purchase_batches": {
+                    ".indexOn": [
+                        "updated_at"
+                    ]
+                },
+                "purchase_items": {
+                    ".indexOn": [
+                        "updated_at"
+                    ]
+                }
+            }
+        }
+    }
+}

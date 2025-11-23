@@ -6,9 +6,9 @@ import Icon from '@expo/vector-icons/MaterialIcons';
 import { Form } from '@unform/mobile';
 import InputText from '../../../components/Form/InputText';
 import InputPhone from '../../../components/Form/InputPhone';
-import * as Yup from 'yup';
+import { clientSchema } from '../../../validation/schemas';
 
-export default function NewClient({ setClient }) {
+export default function NewClient({ setClient, modalClose }) {
 
   // const { user } = useContext(AuthContext);
   const formRef = useRef(null);
@@ -19,12 +19,7 @@ export default function NewClient({ setClient }) {
   async function handleSubmit(data) {
 
     try {
-      const scheme = Yup.object().shape({
-        name: Yup.string(msgErrorName).required(msgErrorName),
-        phone: Yup.string(msgErrorPhone).required(msgErrorPhone),
-      });
-
-      await scheme.validate(data, { abortEarly: false });
+      await clientSchema.validate(data, { abortEarly: false });
 
       setClient(data);
 
@@ -73,6 +68,8 @@ export default function NewClient({ setClient }) {
           <Form style={{ width: '100%' }} onSubmit={handleSubmit} ref={formRef}>
             <InputText name='name' label={"Nome"} type="text" />
             <InputPhone name={'phone'} label={"Telefone"} />
+            <InputText name='email' label={"Email"} type="email" keyboardType="email-address" />
+            <InputText name='address' label={"Endereço"} type="text" />
           </Form>
 
         </ModalContainer>

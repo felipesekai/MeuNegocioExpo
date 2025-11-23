@@ -1,51 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import { View, FlatList } from 'react-native';
-import { getDatabase, onValue, ref } from 'firebase/database';
+import React from 'react';
+import { FlatList } from 'react-native';
+import styled from 'styled-components/native';
 import CardProducts from './CardProducts';
+import ListEmpty from '../../../components/ListEmpty';
 
-const FlatListProducts = ({ userId, openEdit, itemEdit, handlerDelete }) => {
+const ListWrapper = styled.View`
+  flex: 1;
+  padding: 8px 12px;
+`;
 
-    const [productlist, setProductList] = useState([]);
+const FlatListProducts = ({ products, openEdit, itemEdit, handlerDelete }) => {
+  const handlerEdit = (item) => {
+    openEdit(true);
+    itemEdit({ ...item, id: item._id });
+  };
 
-    useEffect(() => {
-        try {
-            const db = getDatabase();
-            const productsRef = ref(db, 'users/' + userId + '/products')
-            onValue(productsRef, (snapshot) => {
-                setProductList([]);
-                snapshot.forEach((product) => {
-                    const data = {
-                        id: product.key,
-                        name: product.val().name,
-                        quantity: product.val().quantity,
-                        price: product.val().price
-                    }
-
-                    setProductList(oldArray => [...oldArray, data]);
-
-                });
-
-            })
-        } catch (error) {
-            console.log(error)
-        }
-
-    }, []);
-
-    function handlerEdit(item) {
-        openEdit(true);
-        itemEdit(item);
-    }
-    return (
-    <View>
-        <FlatList
-            showsVerticalScrollIndicator={false}
-            data={productlist}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (<CardProducts editItem={handlerEdit} itens={item} itemDelete={handlerDelete} />)}
-        />
-    </View>
-    );
-}
+  return (
+    <ListWrapper>
+      <FlatList
+        showsVerticalScrollIndicator={false}
+        data={products}
+        keyExtractor={(item) => item._id}
+        ListEmptyComponent={<ListEmpty message="Nenhum produto cadastrado." />}
+        renderItem={({ item }) => (
+          <CardProducts editItem={handlerEdit} itens={item} itemDelete={handlerDelete} />
+        )}
+        contentContainerStyle={{ paddingBottom: 12 }}
+      />
+    </ListWrapper>
+  );
+};
 
 export default FlatListProducts;

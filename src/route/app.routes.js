@@ -1,30 +1,34 @@
 import React from 'react';
 import { View } from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import Home from '../pages/Home';
-import Client from '../pages/Client';
-import Product from '../pages/Product';
+import Home from '../pages/Home/HomeScreen';
+import Client from '../pages/Client/ClientScreen';
+import Product from '../pages/Product/ProductScreen';
+import Purchase from '../pages/Purchase/PurchaseHistoryScreen';
+import Account from '../pages/Account/AccountScreen';
 import CustomDrawer from '../components/CustomDrawer';
 import Icon from '@expo/vector-icons/MaterialIcons';
+import { useTheme } from 'styled-components';
 
 const Drawer = createDrawerNavigator();
 
 export default function route() {
-
+  const theme = useTheme();
 
   return (
     <Drawer.Navigator
-      drawerContent = {(props)=> <CustomDrawer {...props} />}
-      
+      drawerContent={(props) => <CustomDrawer {...props} />}
+
       screenOptions={
         {
           headerShown: false,
-          drawerActiveBackgroundColor: '#FFD700',
-          drawerActiveTintColor: '#000',
-          drawerInactiveBackgroundColor: '#F0E68C',
-          headerBackground : '#ddd',
+          drawerActiveBackgroundColor: theme.primaryColor,
+          drawerActiveTintColor: theme.textOnPrimary,
+          drawerInactiveBackgroundColor: theme.surfaceColor,
+          drawerInactiveTintColor: theme.textColor,
+          headerBackground: theme.surfaceColor,
           drawerStyle: {
-            backgroundColor: '#F5F5DC'
+            backgroundColor: theme.backgroundColor
           }
 
         }
@@ -35,27 +39,42 @@ export default function route() {
       <Drawer.Screen
         name="Home"
         component={Home}
-        options={{                   
-          drawerIcon:((color, size) => <Icon name='home' color={color} size={16}/>),
+        options={{
+          drawerIcon: ((color, size) => <Icon name='home' color={color} size={16} />),
         }}
       />
       <Drawer.Screen
         name="Client"
         component={Client}
         options={{
-          title: 'Clientes',          
-          drawerIcon:((color, size) => <Icon name='person' color={color} size={16}/>),
+          title: 'Clientes',
+          drawerIcon: ((color, size) => <Icon name='person' color={color} size={16} />),
         }}
-      />  
+      />
       <Drawer.Screen
         name="Product"
         component={Product}
         options={{
           title: 'Produtos',
-          drawerIcon:((color, size) => <Icon name='receipt-long' color={color} size={16}/>),
-         
+          drawerIcon: ((color, size) => <Icon name='receipt-long' color={color} size={16} />),
+
+        }}
+      />
+      <Drawer.Screen
+        name="Purchase"
+        component={Purchase}
+        options={{
+          title: 'Compras',
+          drawerIcon: ((color, size) => <Icon name='shopping-cart' color={color} size={16} />),
+        }}
+      />
+      <Drawer.Screen
+        name="Account"
+        component={Account}
+        options={{
+          title: 'Conta e Backup',
+          drawerIcon: ((color, size) => <Icon name='cloud-upload' color={color} size={16} />),
         }}
       />
     </Drawer.Navigator>);
 }
-

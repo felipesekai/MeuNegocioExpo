@@ -2,7 +2,8 @@ import React from 'react';
 import { View } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import TaskList from '../pages/Home/TaskListPagerView';
-import LastOrders from '../pages/Home/LastOrdersPagerView';
+import LastOrders from '../pages/Home/LastOrdersPagerView/LastOrdersScreen';
+import LastPayments from '../pages/Home/LastOrdersPagerView/LastPaymentsScreen';
 import LayoutIconTopTab from '../components/LayoutIconTopTab';
 import { useTheme } from 'styled-components';
 const Tab = createMaterialTopTabNavigator();
@@ -38,7 +39,7 @@ const theme = useTheme();
 
             <Tab.Screen
                 name='Last Payments'
-                component={LastOrders}
+                component={LastPayments}
                 options={{
                     tabBarIcon: ({ size, color }) => <LayoutIconTopTab nameIcon={"payments"} colors={color} />,
                     title: "Pedidos Pagos"

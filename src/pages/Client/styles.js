@@ -1,26 +1,27 @@
 import styled from 'styled-components/native';
+import { Platform } from 'react-native';
 
 export const Container = styled.View`
 flex: 1;
 justify-content: center;
 width: 100%;
 height: 100%;
-border-top-left-radius: 5px;
-border-top-right-radius: 5px;
+border-top-left-radius: ${props => props.theme.radius || 8}px;
+border-top-right-radius: ${props => props.theme.radius || 8}px;
 `;
 export const Card = styled.TouchableOpacity`
 padding: 10px;
-background-color: ${props=> props.theme.cardColor};
-box-shadow: 0px 3px 1px ${Platform.OS === 'ios' ? 'rgba(0,0,0,0.28)': '#000' };
+background-color: ${props => props.theme.cardColor};
+box-shadow: 0px 3px 1px ${Platform.OS === 'ios' ? 'rgba(0,0,0,0.28)' : '#000'};
 elevation: 3;
 margin: 3px 10px;
-border-radius: 1px;
+border-radius: ${props => props.theme.radius || 8}px;
 `;
 
 export const ItemListText = styled.Text`
 font-size: 18px;
 font-weight: bold;
-color: ${props=> props.theme.textColor};
+color: ${props => props.theme.textColor};
 `;
 
 

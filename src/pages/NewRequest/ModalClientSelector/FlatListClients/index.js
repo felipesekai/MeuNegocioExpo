@@ -1,42 +1,22 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, FlatList } from 'react-native';
-import { getDatabase, ref, onValue } from "firebase/database"
+import React from 'react';
+import { FlatList } from 'react-native';
 import { Card, ItemListText } from './styles';
-import { AuthContext } from '../../../../contexts/auth';
+import { useClients } from '../../../../hooks/useClients';
+import ListEmpty from '../../../../components/ListEmpty';
 
 const FlatListClients = ({ handlerSelect }) => {
-    const { setLoading, user } = useContext(AuthContext);
-    const [listClients, setListClients] = useState([]);
-
-
-    useEffect(() => {
-        try {
-            setLoading(true);
-            const db = getDatabase();
-            const clientsRef = ref(db, `users/${user.id}/clients/`);
-            onValue(clientsRef, (snapshot) => {
-                setListClients([]);
-
-                snapshot.forEach(item => {
-                    let data = { id: item.key, name: item.val().name, phone: item.val().phone };
-                    setListClients(oldArray => [...oldArray, data]);
-                });
-               
-            })
-        } catch (error) {
-
-        }
-        setLoading(false);
-
-    }, [])
+    const { clients, refresh } = useClients();
 
     return (
         <FlatList
             showsVerticalScrollIndicator={false}
-            data={listClients}
-            keyExtractor={item => item.id}
+            data={clients}
+            keyExtractor={item => item._id}
+            onRefresh={refresh}
+            refreshing={false}
+            ListEmptyComponent={<ListEmpty message="Nenhum cliente cadastrado." />}
             renderItem={({ item }) => (
-                <Card onPress={() => handlerSelect(item)}>
+                <Card onPress={() => handlerSelect({ ...item })}>
                     <ItemListText>{item.name}</ItemListText>
                 </Card>)}
         />

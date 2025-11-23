@@ -1,43 +1,46 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { FlatList } from 'react-native';
 import { Container } from './styles';
 import CardItens from './CardItens';
-import { getAllProduct } from '../../../database';
 import { AuthContext } from '../../../contexts/auth';
 import ActiviteIndicatorCenter from '../../../components/ActiviteIndicatorCenter';
-const FlatListProducts = ({ setList, list, _total, _setTotal }) => {
-    const { user,loading, setLoading, theme } = useContext(AuthContext);
+
+
+const ProductList = ({ products, setList, list, _total, _setTotal }) => { // 'products' prop now comes from parent
+    const { theme } = useContext(AuthContext);
+
 
     useEffect(() => {
-        setList([]);
-        setLoading(true);
-        getAllProduct(user.id).then((products) => {
-            products.forEach((product) => {
-                let data = { id: product.key, name: product.val().name, price: product.val().price, quantity: 0 }
-                setList(oldArray => [...oldArray, data]);                
+        // Merge incoming catalog with existing quantities (keeps items já selecionados ou do pedido em edição)
+        if (products && products.length > 0) {
+            setList((prev) => {
+                return products.map((product) => {
+                    const existing = prev?.find((p) => p._id === product._id);
+                    return {
+                        _id: product._id,
+                        name: product.name,
+                        price: product.price,
+                        quantity: existing?.quantity || 0,
+                        description: product.description,
+                    };
+                });
             });
-           
-        }).catch((error) => { })
-        .finally(()=>{setLoading(false);})
+        } else {
+            setList([]);
+        }
+    }, [products, setList]);
 
-    }, [])
-   if(loading) {
-    return (
-         
-        <ActiviteIndicatorCenter size={30} color={theme.primaryColor} />)
-   }
+
+
     return (
         <Container>
             <FlatList
                 data={list}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (<CardItens totalItem={_total} sumTotal={(item)=>_setTotal(item)} item={item} />)}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item }) => (<CardItens sumTotal={_setTotal} item={item} />)}
             />
-
-
         </Container>
-        
-        );
+    );
 }
 
-export default FlatListProducts;
+export default ProductList;

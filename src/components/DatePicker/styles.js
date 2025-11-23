@@ -1,7 +1,8 @@
 import styled from 'styled-components/native';
+import { Platform } from 'react-native';
 
 export const Container = styled.View`
-    background-color: ${props=> Platform.OS === 'ios' ? props.theme.backgroundColor : 'transparent'};
+    background-color: ${props => Platform.OS === 'ios' ? props.theme.backgroundColor : 'transparent'};
     position: absolute;
     bottom: 0;
     flex: 1;
@@ -10,7 +11,7 @@ export const Container = styled.View`
     `;
 
 export const Header = styled.View`
-    background-color: ${props=> props.theme.backgroundColor};
+    background-color: ${props => props.theme.backgroundColor};
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
     justify-content: flex-end;
     align-items: flex-end;
@@ -18,5 +19,5 @@ export const Header = styled.View`
     padding: 16px;
     border-bottom-width: 2px;
     border-top-width: 2px;
-    border-color: ${props=> props.theme.primaryColor};
+    border-color: ${props => props.theme.primaryColor};
 `;

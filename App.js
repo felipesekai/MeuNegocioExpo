@@ -6,6 +6,7 @@ import Routes from './src/route';
 import themes from './src/utils/themes';
 import {ThemeProvider} from 'styled-components';
 import AuthProvider from './src/contexts/auth';
+import { GlobalProvider } from './src/contexts/global';
 import { app } from "./src/services/firebaseConnect";
 
 LogBox.ignoreLogs([
@@ -20,10 +21,12 @@ export default function App() {
  return (
    <NavigationContainer>
       <ThemeProvider theme={theme}>
+     <GlobalProvider>
      <AuthProvider>
     
      <Routes/>
      </AuthProvider>
+     </GlobalProvider>
      </ThemeProvider>
      <StatusBar backgroundColor="#F4A460" />
    </NavigationContainer>

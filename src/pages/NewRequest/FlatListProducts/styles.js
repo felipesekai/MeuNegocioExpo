@@ -1,4 +1,5 @@
 import styled from 'styled-components/native';
+import { Platform } from 'react-native';
 
 export const Container = styled.View`
 flex: ${Platform.OS === 'ios' ? 1 : 'none'};

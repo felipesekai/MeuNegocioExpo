@@ -1,10 +1,13 @@
 import styled from 'styled-components/native';
+import { Platform } from 'react-native';
 
 export const FAB = styled.TouchableOpacity`
         align-items:center;
         justify-content: center;
-        padding: 10px;
-        border-radius: 25px;
+        padding: 14px;
+        min-width: 56px;
+        min-height: 56px;
+        border-radius: 28px;
         box-shadow: 1px 3px 2px ${Platform.OS === 'ios' ? 'rgba(0,0,0,0.28)': '#000'};
         elevation: 3;
         background-color: ${props=>props.theme.primaryColor};
