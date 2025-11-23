@@ -5,7 +5,6 @@ import Home from '../pages/Home/HomeScreen';
 import Client from '../pages/Client/ClientScreen';
 import Product from '../pages/Product/ProductScreen';
 import Purchase from '../pages/Purchase/PurchaseHistoryScreen';
-import Account from '../pages/Account/AccountScreen';
 import User from '../pages/User/UserScreen';
 import CustomDrawer from '../components/CustomDrawer';
 import Icon from '@expo/vector-icons/MaterialIcons';
@@ -67,14 +66,6 @@ export default function route() {
         options={{
           title: 'Compras',
           drawerIcon: ((color, size) => <Icon name='shopping-cart' color={color} size={16} />),
-        }}
-      />
-      <Drawer.Screen
-        name="Account"
-        component={Account}
-        options={{
-          title: 'Conta e Backup',
-          drawerIcon: ((color, size) => <Icon name='cloud-upload' color={color} size={16} />),
         }}
       />
       <Drawer.Screen
