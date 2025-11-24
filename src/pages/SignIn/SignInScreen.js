@@ -7,8 +7,8 @@ import { AuthContext } from '../../contexts/auth';
 
 const SignInScreen = ({ onSwitchToSignUp }) => {
     const { signIn } = useContext(AuthContext);
-    const [email, setEmail] = useState('sekai@sekai.com');
-    const [password, setPassword] = useState('123456')
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('')
     return (
         <Container>
             <ViewInput>
@@ -17,11 +17,13 @@ const SignInScreen = ({ onSwitchToSignUp }) => {
                     value={email}
                     onChangeText={(text) => setEmail(text)}
                     keyboardType="email-address"
+                    placeholder="your-email@email.com"
                 /><TitleInputs>Senha:</TitleInputs>
                 <Input
                     value={password}
                     onChangeText={(text) => setPassword(text)}
                     secureTextEntry={true}
+                    placeholder="your-password"
                 />
             </ViewInput>
             <MyButton onClick={() => signIn(email, password)} title={'Login'} />
