@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet, TextInput } from 'react-native';
 import { useTheme } from 'styled-components';
 
 const Counter = ({ value, onChange, min = 0, max = Number.POSITIVE_INFINITY, label }) => {
@@ -28,7 +28,19 @@ const Counter = ({ value, onChange, min = 0, max = Number.POSITIVE_INFINITY, lab
         >
           <Text style={[styles.symbol, { color: theme.textColor }]}>-</Text>
         </TouchableOpacity>
-        <Text style={[styles.value, { color: theme.textColor }]}>{value}</Text>
+        <TextInput
+          style={[styles.value, { color: theme.textColor, minWidth: 40, textAlign: 'center' }]}
+          value={String(value)}
+          onChangeText={(text) => {
+            const numericValue = parseInt(text, 10);
+            if (!isNaN(numericValue)) {
+              onChange(Math.max(min, Math.min(max, numericValue)));
+            } else if (text === '') {
+              onChange(0);
+            }
+          }}
+          keyboardType="numeric"
+        />
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel="Aumentar quantidade"
