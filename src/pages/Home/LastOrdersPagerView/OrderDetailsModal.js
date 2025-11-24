@@ -1,7 +1,8 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
 import { Background } from '../../../utils/Style';
 import { useTheme } from 'styled-components';
+import { useOrders } from '../../../hooks/useOrders';
 
 const ItemRow = ({ item, theme }) => {
   return (
@@ -15,6 +16,7 @@ const ItemRow = ({ item, theme }) => {
 
 const OrderDetailsModal = ({ visible, order, onClose, onEdit }) => {
   const theme = useTheme();
+  const { updateStatus } = useOrders();
 
   if (!visible || !order) return null;
 
@@ -58,6 +60,25 @@ const OrderDetailsModal = ({ visible, order, onClose, onEdit }) => {
           />
 
           <View style={styles.actions}>
+            {order.status !== 'paid' && (
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: theme.success, marginRight: 10 }]}
+                onPress={() => {
+                  Alert.alert('Confirmar', 'Marcar este pedido como pago?', [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                      text: 'Sim',
+                      onPress: async () => {
+                        await updateStatus(order._id, 'paid');
+                        onClose();
+                      },
+                    },
+                  ]);
+                }}
+              >
+                <Text style={[styles.buttonText, { color: '#fff' }]}>Marcar como Pago</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={[styles.button, { backgroundColor: theme.primaryColor }]}
               onPress={onEdit}

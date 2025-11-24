@@ -111,11 +111,6 @@ const ProductScreen = () => {
           />
         )}
       </View>
-      <HeaderList>
-        <TextHL>Nome</TextHL>
-        <TextHL>Quantidade</TextHL>
-        <TextHL>Preco</TextHL>
-      </HeaderList>
       <Container>
         <FlatListProducts
           products={filteredProducts}

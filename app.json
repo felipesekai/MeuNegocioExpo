@@ -32,6 +32,11 @@
     "plugins": [
       "expo-sqlite"
     ],
-    "newArchEnabled": true
+    "newArchEnabled": true,
+    "extra": {
+      "eas": {
+        "projectId": "96eaa6d7-9c47-41e5-a608-4241004d3f36"
+      }
+    }
   }
 }

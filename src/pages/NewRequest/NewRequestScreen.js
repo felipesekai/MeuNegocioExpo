@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { Modal, TouchableOpacity, Alert, Text } from 'react-native';
+import { Modal, TouchableOpacity, Alert, Text, Switch, View } from 'react-native';
 import { Icons } from '../../components/FloatingButton';
 import { Background } from '../../utils/Style';
 import { Container, ContainerClient, Header, HeaderBackground, Title } from './styles';
@@ -23,6 +23,7 @@ const NewRequestScreen = ({ onClose, onCreated, initialOrder }) => {
   const formRef = useRef(null);
   const [products, setProducts] = useState([]); // selected products with quantity
   const { products: allProducts, refresh: refreshProducts } = useProducts();
+  const [isPaid, setIsPaid] = useState(false);
   const [dataPikcerStatus, setDatePickerStatus] = useState(false);
   const [clientPickerStatus, setClientPickerStatus] = useState(false);
   const [clientSelected, setClientSelected] = useState(null);
@@ -48,6 +49,9 @@ const NewRequestScreen = ({ onClose, onCreated, initialOrder }) => {
           initialOrder.orderDate instanceof Date ? initialOrder.orderDate : new Date(initialOrder.orderDate);
         setDate(parsedDate);
         setDateformat(format(parsedDate, 'dd/MM/yyyy'));
+      }
+      if (initialOrder.status === 'paid') {
+        setIsPaid(true);
       }
     }
   }, [initialOrder]);
@@ -135,7 +139,7 @@ const NewRequestScreen = ({ onClose, onCreated, initialOrder }) => {
             } else {
               await createOrder({
                 clientId: data.client._id,
-                status: 'open',
+                status: isPaid ? 'paid' : 'open',
                 products: data.products,
               });
             }
@@ -219,6 +223,25 @@ const NewRequestScreen = ({ onClose, onCreated, initialOrder }) => {
                 />
               </TouchableOpacity>
             </ContainerClient>
+
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: 12,
+                marginBottom: 10,
+              }}
+            >
+              <Text style={{ color: theme.textColor, fontSize: 16, fontWeight: 'bold' }}>Pago?</Text>
+              <Switch
+                trackColor={{ false: '#767577', true: theme.primaryColor }}
+                thumbColor={isPaid ? '#f4f3f4' : '#f4f3f4'}
+                ios_backgroundColor="#3e3e3e"
+                onValueChange={setIsPaid}
+                value={isPaid}
+              />
+            </View>
             <FlatListProducts products={allProducts} list={products} setList={setProducts} _total={total} _setTotal={setTotal} />
           </Form>
         </Container>
