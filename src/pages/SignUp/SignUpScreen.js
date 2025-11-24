@@ -1,4 +1,4 @@
-import React, {useContext, useRef } from 'react';
+import React, { useContext, useRef } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { AuthContext } from '../../contexts/auth';
 import { Container, Link, LinkText } from './styles';
@@ -7,7 +7,7 @@ import Input from './Input';
 import MyButton from '../../components/MyButton';
 import * as Yup from 'yup';
 import { errorMenssage } from '../../utils/Strings';
- 
+
 const SignUpScreen = ({ onSwitchToSignIn }) => {
     const { signUp } = useContext(AuthContext);
 
@@ -20,15 +20,15 @@ const SignUpScreen = ({ onSwitchToSignIn }) => {
                 email: Yup.string(errorMenssage.email).email(errorMenssage.email).required(errorMenssage.email),
                 repeatEmail: Yup.string().oneOf([Yup.ref('email'), null], errorMenssage.repeatEmail),
                 password: Yup.string(errorMenssage.password).min(6).required(errorMenssage.password),
-                repeatPassword:  Yup.string().oneOf([Yup.ref('password'), null], errorMenssage.repeatPassword),
-        
+                repeatPassword: Yup.string().oneOf([Yup.ref('password'), null], errorMenssage.repeatPassword),
+
             });
 
             await scheme.validate(data, {
                 abortEarly: false,
             });
 
-            signUp(data.name,data.email, data.password);
+            signUp(data.name, data.email, data.password);
 
         } catch (error) {
 
@@ -48,7 +48,7 @@ const SignUpScreen = ({ onSwitchToSignIn }) => {
     }
     return (
         <Container>
-            <Form style={{ width: '90%' }} ref={formRef} onSubmit={handleSubmit}>
+            <Form style={{ width: '90%', justifyContent: "center", alignItems: "center" }} ref={formRef} onSubmit={handleSubmit}>
                 <Input name="name" label="Nome:" />
                 <Input name="email" label="Email:" type="email" />
                 <Input name="repeatEmail" label="Confirme o Email:" type="email" />

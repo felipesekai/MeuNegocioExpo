@@ -40,26 +40,26 @@ const Input = ({ name, label, onChangeText, ...rest }) => {
         });
     }, [fieldName, registerField]);
 
-const handleChangeText = useCallback(
-    text => {
-        if (inputRef.current) inputRef.current.value = text;
+    const handleChangeText = useCallback(
+        text => {
+            if (inputRef.current) inputRef.current.value = text;
 
-        if(onChangeText) onChangeText(text);
-    }, [onChangeText]
-);
+            if (onChangeText) onChangeText(text);
+        }, [onChangeText]
+    );
 
     return (
-            
-            <ViewInput style={{width: '100%'}}>
-            {label&& <TitleInputs>{label}</TitleInputs>}
-            <TInput 
-            ref={inputRef}
-            onChangeText={handleChangeText}
-            defaultValue={defaultValue}
-            {...rest}
+
+        <ViewInput>
+            {label && <TitleInputs>{label}</TitleInputs>}
+            <TInput
+                ref={inputRef}
+                onChangeText={handleChangeText}
+                defaultValue={defaultValue}
+                {...rest}
             />
-            {error && <Text style={{color: 'red'}}>{error}</Text>}
-            </ViewInput>
+            {error && <Text style={{ color: 'red' }}>{error}</Text>}
+        </ViewInput>
     );
 }
 
