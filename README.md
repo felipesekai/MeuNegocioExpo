@@ -104,3 +104,5 @@ Para manter a qualidade e consistência do código:
 ├───__tests__/            # Testes unitários e de integração
 └───package.json          # Metadados do projeto e dependências
 ```
+
+eas build --platform android --profile preview

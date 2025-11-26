@@ -24,6 +24,7 @@
     "@unform/mobile": "^2.1.6",
     "date-fns": "^2.28.0",
     "expo": "^52.0.0",
+    "expo-build-properties": "~0.13.3",
     "expo-document-picker": "~13.0.3",
     "expo-file-system": "~18.0.12",
     "expo-sharing": "~13.0.1",
@@ -50,7 +51,6 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/plugin-proposal-decorators": "^7.28.0",
-    "@testing-library/react-hooks": "^8.0.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react": "^7.34.0",

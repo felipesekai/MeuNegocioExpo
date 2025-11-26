@@ -30,7 +30,17 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "gradleVersion": "8.7",
+            "kotlinVersion": "1.9.24"
+          }
+        }
+      ],
+      "expo-updates"
     ],
     "newArchEnabled": true,
     "extra": {
